@@ -19,15 +19,8 @@
             <a class="navbar-brand" href="#">Online store of goods</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
-            <form class="navbar-form navbar-right">
-                <div class="form-group">
-                    <input type="text" placeholder="Email" class="form-control">
-                </div>
-                <div class="form-group">
-                    <input type="password" placeholder="Password" class="form-control">
-                </div>
-                <button type="submit" class="btn btn-success">Sign in</button>
-            </form>
+                <button onclick="document.location.assign('/login'); return false;" type="button" class="ua1 userActionButton btn btn-success">Sign in</button>
+                <button onclick="document.location.assign('/registration'); return false;" type="button" class="ua2 userActionButton btn btn-success">Create account</button>
         </div><!--/.navbar-collapse -->
     </div>
 </nav>
@@ -35,10 +28,6 @@
 <div class="col-sm-3 col-md-2 sidebar h100P">
     <ul class="nav nav-sidebar">
         <?php renderPartial('renderGeneralMenu');?>
-        <!--<li class="active activeMenu"><a href="#">Overview <span class="sr-only">(current)</span></a></li>
-        <li><a href="#">Reports</a></li>
-        <li><a href="#">Analytics</a></li>
-        <li><a href="#">Export</a></li>-->
     </ul>
 </div>
 <div class="container">

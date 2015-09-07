@@ -150,7 +150,7 @@ class Cache
      * @param bool $firstSaving
      */
     private function saveRouteUrlInFile($string, $firstSaving = false) {
-        $resultSaving = file_put_contents(ROUTER_CACHE_FILE, '<?php function getRoute(){return '.$string.'}');
+        $resultSaving = @file_put_contents(ROUTER_CACHE_FILE, '<?php function getRoute(){return '.$string.'}');
         if ($resultSaving === false || $resultSaving < 1) {
             crash('The cache-route-file was not saved');
         }

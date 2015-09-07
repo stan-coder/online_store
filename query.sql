@@ -172,7 +172,8 @@ insert into online_store.books (title, description, product_id) values
 ('PHP 5 на практике', 'descr php5', 16),
 ('PHP - это просто', 'simple php', 17);
 
--- -------------------------------
+--------------------------------------------
+
 insert into online_store.products (price, new_mark, goods_bunch_id) values
 (998, true, 1), (129, true, 1), (1556, true, 1);
 
@@ -199,3 +200,9 @@ insert into online_store.books (title, description, product_id) values
 
 insert into online_store.products (price, new_mark, goods_bunch_id) values (742, true, 1);
 insert into online_store.books (title, description, product_id) values ('Новая книга по JS', 'new book', 28);
+
+------------------------------------------
+-- AUTHORS
+insert into online_store.authors (initials, description) values (array['Девид', 'Фленаган'], 'Автор популярных книг о JavaScript');
+insert into online_store.authors (initials, description) values (array['Артур', 'Кудрявцев'], 'Выпустил книги главным образом по математике');
+insert into online_store.authors (initials, description) values (array['Sarah', 'McLux'], 'Программист в области web-приложений');

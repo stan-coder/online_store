@@ -26,7 +26,13 @@
                 </div>
                 <div class="inner">
                     <p><?php echo ($element['p_presence']?'на складе':'нет в наличие');?></p>
-                    <p class="authors">Авторы:</p>
+                    <p class="authors">Авторы:
+                        <?php
+                        foreach ($element['authors'] as $author) {
+                            echo "<a href=\"/authors/$author[id]\">$author[initials]</a>, ";
+                         }
+                        ?>
+                    </p>
                     <span class="price">
                         <?php /*echo $element['p_price'];*/?>id: <?php echo $element['p_id'];?>
                     </span> <!--руб-->

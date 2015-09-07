@@ -44,3 +44,45 @@ body{
 .authors{
     padding-bottom: 9px;
 }
+
+.bookView{
+    border-collapse: collapse;
+}
+
+.bookView td {
+    padding: 5px 15px 5px 5px;
+    vertical-align: top;
+}
+
+.bookView td div.tdRight{
+    margin-top: -20px;
+}
+
+.clGreen{
+    color: forestgreen;
+}
+
+.clRed{
+    color: darkred;
+}
+
+#toNotifyAboutPresence{
+    font-style: italic;
+}
+
+.clGray{
+    color: grey;
+}
+
+.userActionButton{
+    margin-top: 8px;
+    position: absolute;
+}
+
+.ua1{
+    right: 150px;
+}
+
+.ua2{
+    right: 225px;
+}

@@ -3,6 +3,9 @@
  * @author Stnislav Zavalishin
  * @email stanislav.web.developer@gmail.com
  */
+//echo chr(2480);
+//exit;
+
 
 ini_set('display_errors', 1);
 

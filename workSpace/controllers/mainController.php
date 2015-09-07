@@ -2,6 +2,8 @@
 
 class MainController extends controllerManager
 {
+    public static $paginationCountElement = 3;
+
     public static $url = [
         'index' => [
             'url' => '/',
@@ -50,9 +52,7 @@ class MainController extends controllerManager
                 }
             }
             set(['subCatalog' => $subCatalogs, 'catalogId' => $data[0]['gc_id']]);
-            set('quickExplore', [
-                0 => ['url' => '/catalog/'.$data[0]['gc_id'], 'title' => $data[0]['gc_title']]
-            ]);
+            set('quickExplore', $this->model('render')->getQuickExploreArray($data, 1));
             $title = "Catalog of \"".$data[0]['gc_title']."\"";
         }
         $this->setTitle($title);
@@ -75,10 +75,7 @@ class MainController extends controllerManager
                 ];
             }
             set(['subCatalog' => $data[0]['sc_title'], 'catalogId' => $data[0]['gc_id'], 'goodsBunch' => $goodsBunch]);
-            set('quickExplore', [
-                0 => ['url' => '/catalog/'.$data[0]['gc_id'], 'title' => $data[0]['gc_title']],
-                1 => ['url' => '/sub_catalog/'.$data[0]['sc_id'], 'title' => $data[0]['sc_title']]
-            ]);
+            set('quickExplore', $this->model('render')->getQuickExploreArray($data, 2));
             $title .= " of \"".$data[0]['sc_title']."\"";
         }
         $this->setTitle($title);
@@ -94,17 +91,18 @@ class MainController extends controllerManager
         /**
          * Determine catalog
          */
-        if (empty($data = $this->model('render')->getProductsByGoodsBunchId( $match[1], isset($match[2])?($match[2]-1)*2:0 ))) {
+        if (empty($data = $this->model('render')->getProductsByGoodsBunchId( $match[1], isset($match[2])?($match[2]-1)*self::$paginationCountElement:0 ))) {
             set('goodsBunchNotFound', 1);
         } else {
             /**
              * Calculation count of page
              */
             $productsCount = $data[0]['products_count'];
-            $divided = $productsCount / 2;
+            $divided = $productsCount / self::$paginationCountElement;
             $pageCount = is_float($divided) ? intval(floor(++$divided)) : $divided;
-            set('pagination', $this->getPaginationArray($match[2], $pageCount));
-            set(['pageCount' => $pageCount, 'currentPage' => $match[2]]);
+            $currentPage = !isset($match[2])?1:$match[2];
+            set('pagination', $this->getPaginationArray($currentPage, $pageCount));
+            set(['pageCount' => $pageCount, 'currentPage' => $currentPage]);
 
             $title = 'Goods bunch';
             $typeCatalog = [1 => 'books'];
@@ -115,11 +113,7 @@ class MainController extends controllerManager
             $this->setView('mainList', $typeCatalog[$catalogId]);
             $typeProduct = call_user_func([$this, $typeCatalog[$catalogId].'Category'], $data);
             set(['catalogId' => $data[0]['gc_id'], 'goodsBunch' => $data[0]['gb_title'], 'typeProduct' => $typeProduct]);
-            set('quickExplore', [
-                0 => ['url' => '/catalog/'.$data[0]['gc_id'], 'title' => $data[0]['gc_title']],
-                1 => ['url' => '/sub_catalog/'.$data[0]['sc_id'], 'title' => $data[0]['sc_title']],
-                2 => ['url' => '/goods_bunch/'.$data[0]['gb_id'], 'title' => $data[0]['gb_title']]
-            ]);
+            set('quickExplore', $this->model('render')->getQuickExploreArray($data, 3));
             $title .= ' of "'.$data[0]['gb_title'].'"';
         }
         $this->setTitle($title);
@@ -137,12 +131,9 @@ class MainController extends controllerManager
             return ['isError' => true];
         }
         if ($pageCount <= 1) {
-            return ['isPagination' => false];
+            return ['isPagination' => false, 'isError' => false];
         }
-        $result = [
-            'isPagination' => true,
-            'isError' => false,
-        ];
+        $result = ['isPagination' => true,'isError' => false];
         if ($pageCount < 5) {
             return range($page, $pageCount);
         }
@@ -168,15 +159,33 @@ class MainController extends controllerManager
         $keys = array_map(function ($element){
             return ++$element;
         }, array_keys($productsId));
-        $result = array_combine($keys, $productsId);
-        $sql = 'select id b_id, title b_title, product_id b_product_id from online_store.books where product_id in ('.implode(array_fill(1, count($keys), '?'), ', ').')';
-        if (empty($books = $this->db()->select($sql, $result))) {
+        if (empty( $books = $this->model('render')->getBooksByProductsListId(implode(array_fill(1, count($keys), '?'), ', '), array_combine($keys, $productsId)) )) {
             crash('Query for select books return empty result');
         }
-        if (count($books) !== count($data)) {
+
+        $booksId = array_unique(array_column($books, 'b_id'));
+        if (count($booksId) !== count($data)) {
             crash('Books and products do not match by count');
         }
-        $preparedBooks = array_combine(array_column($books, 'b_product_id'), $books);
+        $preparedBooks = [];
+        /**
+         * Fill array with authors
+         */
+        foreach ($books as $book) {
+            if (!isset($preparedBooks[$book['b_product_id']])) {
+                $preparedBooks[ $book['b_product_id'] ] = [
+                    'b_title' => $book['b_title'],
+                    'b_id' => $book['b_id'],
+                ];
+            }
+            if (is_numeric($book['a_id'])) {
+                $preparedBooks[ $book['b_product_id'] ]['authors'][ $book['a_id'] ] = [
+                    'id' => $book['a_id'],
+                    'initials' => $book['a_initials']
+                ];
+            }
+        }
+        //$preparedBooks = array_combine(array_column($books, 'b_product_id'), $books);
         foreach ($data as $element) {
             $return[] = [
                 'p_id' => $element['p_id'],
@@ -184,6 +193,7 @@ class MainController extends controllerManager
                 'p_presence' => $element['p_presence'],
                 'b_id' => $preparedBooks[ $element['p_id'] ]['b_id'],
                 'b_title' => $preparedBooks[ $element['p_id'] ]['b_title'],
+                'authors' => isset($preparedBooks[ $element['p_id'] ]['authors']) ? $preparedBooks[ $element['p_id'] ]['authors'] : []
             ];
         }
         return $return;
