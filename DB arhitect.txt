@@ -1,0 +1,138 @@
+
+
+Таблицы
+    users:
+        id:
+        email:
+        password:
+        salt:
+
+
+    basket:
+        id:
+        user_id:
+        product_id:
+        postponed: [boolean]
+
+
+    orders_goods:
+        id:
+        performed:
+        product_id:
+
+
+    notification_about_presence_goods:
+        id:
+        user_id:
+        product_id:
+
+
+    marks:
+        id:
+        title:
+
+
+    marks_products:
+        id:
+        mark_id:
+        product_id:
+
+
+    likes:
+        id:
+        assessment: [boolean]
+        product_id:
+
+
+    recalls:
+        id:
+        title:
+        commentary:
+        date_crated:
+        user_id:
+
+
+    usefulness_recalls:
+        id:
+        assessment: [boolean]
+        recall_id:
+
+
+
+
+
+
+
+
+
+
+
+    general_catalog:
+        id:
+        title:
+        enabled:
+
+
+    sub_catalog:
+        id:
+        title:
+        ordering:
+        enabled:
+        catalog_id:
+
+
+    goods_bunch:
+        id:
+        title:
+        enabled:
+        sub_catalog_id:
+
+
+    products:
+        id:
+        price: [integer]
+        presence: [boolean]
+        new_mark: [boolean]
+        goods_bunch_id:
+
+
+    books:
+        id:
+        title:
+        description:
+        product_id:
+
+
+    authors:
+        id:
+        initials: [array]
+        description:
+
+
+    publishing_house:
+        id:
+        title:
+        description:
+
+
+    languages_books:
+        id:
+        title:
+
+
+    authors_books:
+        id:
+        author_id:
+        book_id:
+
+
+    publishing_house_books:
+        id:
+        publishing_house_id:
+        book_id:
+
+
+    languages_books_books:
+        id:
+        languages_books_id:
+        book_id:

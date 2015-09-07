@@ -1,0 +1,10 @@
+    public static $url = [
+        'index' => [
+            'url' => '/',
+            'css' => array('controlStyle1.css', 'controlStyle2.css'), 'js' => array('ss.js', 'open.js'), 'title' => 'New 1991'],
+        /*'about' => array('url' => '/about', 'ajax1' => true),
+        'help' => array('url' => '/help', 'post' => true),
+        'men'  => array('url' => '/men', 'layout' => 'blueLayout')*/
+    ],
+        $noView = ['about', 'help'],
+        $options = ['wholeControllerIsAjax.' => true, 'layout.' => 'blueLayout', 'noView.' => true];

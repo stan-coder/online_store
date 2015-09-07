@@ -1,0 +1,46 @@
+body{
+    margin: 65px 20px 10px 76px;
+}
+
+.activeMenu{
+    background-color: #99fccc;
+}
+
+.h100P{
+    height: 100%;
+}
+
+.quickExplore{
+    margin-bottom: 20px;
+    margin-top: 8px;
+}
+
+.quickExplore span{
+    margin-right: 10px;
+}
+
+.w300{
+    width: 280px;
+    height: 354px;
+    float: left;
+    margin-right: 20px;
+}
+
+.panel-body .preview {
+    text-align: center;
+}
+
+.panel-body .inner {
+    line-height: 14px;
+    margin-top: 9px;
+    margin-left: 5px;
+}
+
+.panel-body .inner .price{
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.authors{
+    padding-bottom: 9px;
+}
