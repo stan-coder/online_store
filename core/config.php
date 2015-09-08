@@ -14,7 +14,8 @@ class Config {
         $dbHost = 'localhost',
         $dbUsername = 'postgres',
         $dbPassword = 'root',
-        $dbName = 'my-first-learning-db';
+        $dbName = 'my-first-learning-db',
+        $secretKey = 'thisIsYourSecretKeyWhichDesirableBeingChanged';
 
     /**
      * List of files core

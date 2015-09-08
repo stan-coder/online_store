@@ -86,3 +86,11 @@ body{
 .ua2{
     right: 225px;
 }
+
+.w400{
+    max-width: 550px;
+}
+
+.alCenter {
+    margin: 0 auto;
+}

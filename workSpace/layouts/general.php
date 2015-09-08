@@ -16,20 +16,15 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#">Online store of goods</a>
+            <a class="navbar-brand" href="/">Online store of goods</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
-                <button onclick="document.location.assign('/login'); return false;" type="button" class="ua1 userActionButton btn btn-success">Sign in</button>
+                <button onclick="document.location.assign('/sign_in'); return false;" type="button" class="ua1 userActionButton btn btn-success">Sign in</button>
                 <button onclick="document.location.assign('/registration'); return false;" type="button" class="ua2 userActionButton btn btn-success">Create account</button>
         </div><!--/.navbar-collapse -->
     </div>
 </nav>
-<!-- menu -->
-<div class="col-sm-3 col-md-2 sidebar h100P">
-    <ul class="nav nav-sidebar">
-        <?php renderPartial('renderGeneralMenu');?>
-    </ul>
-</div>
+<?php renderPartial('renderGeneralMenu');?>
 <div class="container">
     <?php renderPartial('quickExplore');?>
     <?php eval("?>{$content}<?");?>

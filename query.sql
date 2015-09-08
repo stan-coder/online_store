@@ -34,7 +34,32 @@ create table online_store.users (
   id serial not null primary key,
   email varchar(20) not null,
   password char(128) not null,
-  salt char(128) not null
+  salt char(128) not null,
+  confirm_code varchar(128),
+  confirm_code_expired timestamp,
+  recover_password_code varchar(128),
+  recover_password_code_expired timestamp,
+  is_active boolean default true,
+  created date default CURRENT_DATE
+);
+
+create table online_store.attempts (
+  id serial not null primary key,
+  unique_identifier varchar(15) not null unique,
+  count_attempts smallint not null,
+  expired timestamp not null
+);
+
+create table online_store.users_sessions (
+  id serial not null primary key,
+  user_id integer not null,
+  hash char(128) not null,
+  ip varchar(15) not null,
+  agent varchar(100) not null,
+  expire timestamp,
+  session_name char(100) not null,
+  session_id char(100) not null,
+  foreign key (user_id) references online_store.users (id) match simple on update cascade on delete cascade
 );
 
 create table online_store.basket (

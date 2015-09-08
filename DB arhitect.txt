@@ -1,3 +1,6 @@
+
+!!! chr(2480);
+
 Планы:
 	сделать проверку на блокировку при попытке:
 		1) перейти по ссылке подтверждения email
@@ -15,33 +18,32 @@
         id:
         email: varchar(50)
         password: varchar(128)
-        salt: varchar(128) (соль генерировать путём выборки произвольного кода символа ASCI из интервала chr(2480))
-	confirm_code:
-	confirm_code_expired: (timestamp) (когда истекает действие кода активации, который приходит на email для подтверждения)
-	recover_password_code:
-	recover_password_code_expired: (timestamp)
-	is_active: (boolean)
-	created: (date)
+        salt: varchar(128) (соль генерировать путём выборки произвольного кода символа ASCII из интервала chr(2480))
+    	confirm_code:
+    	confirm_code_expired: (timestamp) (когда истекает действие кода активации, который приходит на email для подтверждения)
+    	recover_password_code:
+    	recover_password_code_expired: (timestamp)
+    	is_active: (boolean)
+    	created: (date)
 
 
     attempts:
-	id:
-	unique identifier: varachar(15) (unique)
+	    id:
+    	unique identifier: varchar(15) (unique)
         count_attempts: (smallint)
-	expired: timestamp
+    	expired: timestamp
 
 
-    users_session:
-	id:
-	user_id:
-	hash:
-	ip:
-	agent:
-	expire: при логировании, если пользователь выбрал "запомнить меня", то в это поле записываем текущий (timestamp +1 month), который будет проверятся и по истеченю сессия удаляется. 
-		Конечно точно такие же (+1month) создаются куки.
-	session_name/id (уточнить): (необходим для создания уникального seesion_name() для хранения в куках, вместо стандартного PHPSESSID)
-	cookie_hash: (сгенерированный хеш, который создается в куках, сохраняется в базе и учавствует в генерации users_session:hash и в последующей его проверке 
-	             при каждом обращении к сайту во время, того, как юзер залогинен)
+    users_sessions:
+	    id:
+    	user_id:
+	    hash:
+    	ip:
+    	agent:
+    	expire: при логировании, если пользователь выбрал "запомнить меня", то в это поле записываем текущий (timestamp +1 month), который будет проверятся и по истеченю сессия удаляется.
+   		        Конечно точно такие же (+1month) создаются куки.
+        session_name: char(100) (необходим для создания уникального session_name() для хранения в куках, вместо стандартного PHPSESSID)
+        session_id: char(100)
 
 
     basket:

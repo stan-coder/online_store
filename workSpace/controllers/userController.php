@@ -6,8 +6,8 @@ class UserController extends controllerManager
         'registration' => [
             'url' => '/registration',
             'title' => 'Registration new user'],
-        'login' => [
-            'url' => '/login',
+        'signIn' => [
+            'url' => '/sign_in',
             'title' => 'Login in system',
             'css' => ['login']],
     ];
@@ -16,8 +16,7 @@ class UserController extends controllerManager
 
     }
 
-    public function login()
-    {
+    public function signIn() {
 
     }
 }
