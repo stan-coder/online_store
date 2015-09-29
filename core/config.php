@@ -10,11 +10,12 @@ class Config {
      */
     public static
         $debug = true,
-        $dbDriver = 'pgsql',
+        $dbDriver = 'mysql',
         $dbHost = 'localhost',
-        $dbUsername = 'postgres',
+        $dbUsername = 'root',
         $dbPassword = 'root',
-        $dbName = 'my-first-learning-db',
+        $dbName = 'online_store',
+        $dbCharset = 'utf8',
         $secretKey = 'thisIsYourSecretKeyWhichDesirableBeingChanged';
 
     /**
@@ -24,6 +25,7 @@ class Config {
     private static $filesCore = array(
         'functions',
         'logging',
+        'baseManager',
         'controllerManager',
         'pdo',
         'cache',

@@ -181,11 +181,10 @@ class MainController extends controllerManager
             if (is_numeric($book['a_id'])) {
                 $preparedBooks[ $book['b_product_id'] ]['authors'][ $book['a_id'] ] = [
                     'id' => $book['a_id'],
-                    'initials' => $book['a_initials']
+                    'initials' => $book['a_first_name'] . ' ' . $book['a_surname'],
                 ];
             }
         }
-        //$preparedBooks = array_combine(array_column($books, 'b_product_id'), $books);
         foreach ($data as $element) {
             $return[] = [
                 'p_id' => $element['p_id'],

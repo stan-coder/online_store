@@ -5,10 +5,9 @@
  *
  * Class controllerManager
  */
-class controllerManager
+class controllerManager extends baseManager
 {
     public static $variables = array(), $js = array(), $css = array(), $title = '', $isAjax = false, $noView = false, $layout = 'general', $matchUrl = null, $view = null;
-    private $models = array();
 
     /**
      * Get prepared resources
@@ -38,18 +37,6 @@ class controllerManager
      */
     public function db($classType = null) {
         return (is_null($classType) ? dbPrepare::getInstance() : dbCommon::getInstance());
-    }
-
-    public function model($name) {
-        if (!in_array($name, $this->models)) {
-            /**
-             * Create single exemplar
-             */
-            require_once(WORK_SPACE_FOLDER_PATH . 'models' . DS . $name . 'Model.php');
-            $refCl = new ReflectionClass(ucfirst($name).'Model');
-            $this->models[$name] = $refCl->newInstance();
-        }
-        return $this->models[$name];
     }
 
     /**
@@ -117,5 +104,15 @@ class controllerManager
     public function getMatchUrl()
     {
         return self::$matchUrl;
+    }
+
+    /**
+     * Short access to session model
+     *
+     * @return mixed
+     */
+    public function session()
+    {
+        return $this->model('session');
     }
 }

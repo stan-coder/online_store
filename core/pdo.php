@@ -12,7 +12,7 @@ class db
     public static function get() {
         if (is_null(self::$dbh)) {
             try {
-                self::$dbh = new PDO(Config::$dbDriver.':host='.Config::$dbHost.';dbname='.Config::$dbName, Config::$dbUsername, Config::$dbPassword, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
+                self::$dbh = new PDO(Config::$dbDriver.':host='.Config::$dbHost.';dbname='.Config::$dbName.';charset='.Config::$dbCharset, Config::$dbUsername, Config::$dbPassword, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
             } catch (PDOException $pe) {
                 crash($pe->getMessage());
             }

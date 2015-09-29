@@ -1,6 +1,6 @@
 <?php
 
-class RenderModel extends Model
+class RenderModel extends modelManager
 {
     public function getCatalogById($id) {
         $sql = '
@@ -8,9 +8,9 @@ class RenderModel extends Model
             sc.id sc_id, sc.title sc_title, sc.enabled sc_enabled, sc.catalog_id sc_catalog_id,
             gb.id gb_id, gb.title gb_title, gb.enabled gb_enabled, gb.sub_catalog_id gb_sub_catalog_id,
             gc.id gc_id, gc.title gc_title
-        from online_store.general_catalog gc
-        left join online_store.sub_catalog sc on gc.id = sc.catalog_id
-        left join online_store.goods_bunch gb on sc.id = gb.sub_catalog_id
+        from general_catalog gc
+        left join sub_catalog sc on gc.id = sc.catalog_id
+        left join goods_bunch gb on sc.id = gb.sub_catalog_id
 
         where gc.id = ? and gc.enabled = true and sc.enabled = true
         order by sc.ordering asc';
@@ -24,9 +24,9 @@ class RenderModel extends Model
             sc.id sc_id, sc.title sc_title,
             gb.id gb_id, gb.title gb_title,
             gc.id gc_id, gc.title gc_title
-        from online_store.sub_catalog sc
-        left join online_store.goods_bunch gb on sc.id = gb.sub_catalog_id
-        left join online_store.general_catalog gc on sc.catalog_id = gc.id
+        from sub_catalog sc
+        left join goods_bunch gb on sc.id = gb.sub_catalog_id
+        left join general_catalog gc on sc.catalog_id = gc.id
 
         where sc.id = ? and sc.enabled = true and gb.enabled = true and gc.enabled = true
         ';
@@ -40,12 +40,12 @@ class RenderModel extends Model
             gb.id gb_id, gb.title gb_title,
             sc.id sc_id, sc.title sc_title,
             gc.id gc_id, gc.title gc_title,
-            (select count(id) from online_store.products as inp
+            (select count(id) from products as inp
             where inp.goods_bunch_id = :id and gb.enabled = true and sc.enabled = true and gc.enabled = true) as products_count
-        from online_store.products p
-        left join online_store.goods_bunch gb on p.goods_bunch_id = gb.id
-        left join online_store.sub_catalog sc on gb.sub_catalog_id = sc.id
-        left join online_store.general_catalog gc on sc.catalog_id = gc.id
+        from products p
+        left join goods_bunch gb on p.goods_bunch_id = gb.id
+        left join sub_catalog sc on gb.sub_catalog_id = sc.id
+        left join general_catalog gc on sc.catalog_id = gc.id
 
         where p.goods_bunch_id = :id and gb.enabled = true and sc.enabled = true and gc.enabled = true
         order by p.id asc
@@ -58,10 +58,10 @@ class RenderModel extends Model
         $sql = '
         select
             b.id b_id, b.title b_title, b.product_id b_product_id,
-            a.id a_id, array_to_string(a.initials, \' \') as a_initials
-            from online_store.books b
-        left join online_store.authors_books ab on ab.book_id = b.id
-        left join online_store.authors a on ab.author_id = a.id
+            a.id a_id, a.first_name a_first_name, a.surname a_surname
+            from books b
+        left join authors_books ab on ab.book_id = b.id
+        left join authors a on ab.author_id = a.id
 
         where product_id in ('.$placeholders.')';
         return $this->db()->select($sql, $data);
@@ -72,20 +72,20 @@ class RenderModel extends Model
         select
             b.id b_id, b.title b_title, b.description b_description,
             p.id p_id, p.price p_price, p.presence p_presence, p.new_mark p_new_mark,
-            a.id a_id, array_to_string(a.initials, \' \') as a_initials,
+            a.id a_id, a.first_name a_first_name, a.surname a_surname,
             gb.id gb_id, gb.title gb_title,
             sc.id sc_id, sc.title sc_title,
             gc.id gc_id, gc.title gc_title,
-            (select count(id) from online_store.likes l1 where l1.assessment = true and l1.product_id = p.id) as count_likes,
-            (select count(id) from online_store.likes l2 where l2.assessment = false and l2.product_id = p.id) as count_dislikes
+            (select count(id) from likes l1 where l1.assessment = true and l1.product_id = p.id) as count_likes,
+            (select count(id) from likes l2 where l2.assessment = false and l2.product_id = p.id) as count_dislikes
 
-        from online_store.books b
-        left join online_store.products p on b.product_id = p.id
-        left join online_store.authors_books ab on b.id = ab.book_id
-        left join online_store.authors a on ab.author_id = a.id
-        left join online_store.goods_bunch gb on p.goods_bunch_id = gb.id
-        left join online_store.sub_catalog sc on gb.sub_catalog_id = sc.id
-        left join online_store.general_catalog gc on sc.catalog_id = gc.id
+        from books b
+        left join products p on b.product_id = p.id
+        left join authors_books ab on b.id = ab.book_id
+        left join authors a on ab.author_id = a.id
+        left join goods_bunch gb on p.goods_bunch_id = gb.id
+        left join sub_catalog sc on gb.sub_catalog_id = sc.id
+        left join general_catalog gc on sc.catalog_id = gc.id
 
         where b.id = ? and gb.enabled = true and sc.enabled = true and gc.enabled = true
         ';

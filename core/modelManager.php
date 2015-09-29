@@ -5,7 +5,7 @@
  *
  * Class Model
  */
-class Model
+class modelManager extends baseManager
 {
     /**
      * Get needed Db instance

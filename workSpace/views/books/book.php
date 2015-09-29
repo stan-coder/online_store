@@ -16,7 +16,7 @@ if (isset(controllerManager::$variables['bookNotFound'])) {
                 <h3>{title}</h3>
                 <p>Авторы: <?php
                     foreach ($authors as $key => $author) {
-                        echo "<a href=\"/author/$author[0]\">$author[1]</a>".($key!=(count($authors)-1)?', ':'');
+                        echo "<a href=\"/author/$author[0]\">$author[1]</a>".($key==count($authors)-1?'':', ');
                     }
                     ?>
                 </p>

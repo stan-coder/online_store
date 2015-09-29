@@ -28,14 +28,16 @@
                     <p><?php echo ($element['p_presence']?'на складе':'нет в наличие');?></p>
                     <p class="authors">Авторы:
                         <?php
-                        foreach ($element['authors'] as $author) {
-                            echo "<a href=\"/authors/$author[id]\">$author[initials]</a>, ";
-                         }
+                        $authors = $element['authors'];
+                        $lastAuthor = array_pop($authors);
+                        foreach ($element['authors'] as $key => $author) {
+                            echo "<a href=\"/authors/$author[id]\">$author[initials]</a>".($lastAuthor['id']==$key?'':', ');
+                        }
                         ?>
                     </p>
                     <span class="price">
-                        <?php /*echo $element['p_price'];*/?>id: <?php echo $element['p_id'];?>
-                    </span> <!--руб-->
+                        <?php echo $element['p_price'];?>
+                    </span> руб
                     <span></span>
                 </div>
             </div>

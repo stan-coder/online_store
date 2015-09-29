@@ -1,0 +1,37 @@
+#btnConfirm - кнопка продолжить
+
+
+кнопка расчитать - $("#calc-btn").click(calcFn);
+
+инициализация переменной form осуществляется на основе данных скрипта - /var/www/dostek-dev/web/js/gni/form.js
+
+
+
+
+
+$('.date-picker').datepicker( {
+        changeYear: true,
+        yearRange: minYear+':'+curYear,
+        showButtonPanel: true,
+        dateFormat: 'MM yy',
+        /*maxDate: changedYear.toString().substr(2,2)+'-'+changedMonth,*/
+        onChangeMonthYear: function (year, month) {
+            if (!isShowed) return;
+            $('#year_0').val(year);
+            $('#quarter_0').val(fullMonthNames[month-1]);
+            changeYear();
+            changeQuarter();
+            changedYear = year;
+            changedMonth = month - 1;
+            return false;
+        },
+        onClose: function(){
+            isShowed = false;
+        },
+        beforeShow : function(input, inst) {
+            $(this).datepicker('option', 'defaultDate', new Date(changedYear, changedMonth, 1));
+            $('#quarter_0').val(fullMonthNames[changedMonth]);
+            $('#year_0').val(changedYear);
+            isShowed = true;
+        }
+    });

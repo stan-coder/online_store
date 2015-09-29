@@ -84,6 +84,13 @@ class Render
             crash('Unable to open view-file: '.$pathToViewFile);
         }
         /**
+         * Exclusively for CSRF protection actions in order to obtain more convenience while using
+         */
+        if (mb_strpos($content, '{CSRFProtection}') !== false) {
+            require_once(WORK_SPACE_FOLDER_PATH.'models'.DS.'CSRFProtectionModel.php');
+            $content = str_replace('{CSRFProtection}', (new CSRFProtectionModel())->protection(), $content);
+        }
+        /**
          * Replace variables {} in template
          */
         foreach (controllerManager::$variables as $varName => $varValue) {

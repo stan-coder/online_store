@@ -25,7 +25,7 @@ class BooksController extends controllerManager
                 'likes' =>  $data[0]['count_likes'],
                 'dislikes' =>  $data[0]['count_dislikes'],
                 'authors' => array_map(function($element) {
-                    return [$element['a_id'], $element['a_initials']];
+                    return [$element['a_id'], $element['a_first_name'].$element['a_surname']];
                 }, $data),
                 'description' => $data[0]['b_description']
             ]);
