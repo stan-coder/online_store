@@ -11,15 +11,23 @@ class CustomFunctionModel extends modelManager
         return $_SERVER['REMOTE_ADDR'];
     }
 
-    public function getRandomString($length) {
-        $hash = '';
+    public function getRandomString($length = 100) {
+        $string = '';
         for ($c=0; $c<$length; $c++) {
-            $hash .= chr(mt_rand(35, 126));
+            $string .= chr(mt_rand(35, 126));
         }
-        return $hash;
+        return $string;
     }
 
     public function checkCorrectEmail($email) {
         return preg_match('~^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$~', $email);
+    }
+
+    public function checkExistingEmail($email) {
+        return (bool)$this->db()->selectOne('select id from users where email = :email limit 1', [':email' => $email]);
+    }
+
+    public function getMultiplePasswordEncode() {
+
     }
 }
