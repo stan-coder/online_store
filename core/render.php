@@ -91,6 +91,16 @@ class Render
             $content = str_replace('{CSRFProtection}', (new CSRFProtectionModel())->protection(), $content);
         }
         /**
+         * Show fields error
+         */
+        if (mb_strpos($content, '{_err}') !== false) {
+            $content = explode('{_err}', $content);
+            array_walk($content, function (&$item, $key, $count) {
+                $item = $item.($key<$count?"<?php echo controllerManager::getFieldError({$key}); ?>":'');
+            }, count($content)-1);
+            $content = implode('', $content);
+        }
+        /**
          * Replace variables {} in template
          */
         foreach (controllerManager::$variables as $varName => $varValue) {

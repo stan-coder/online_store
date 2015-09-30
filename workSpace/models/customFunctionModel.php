@@ -20,6 +20,6 @@ class CustomFunctionModel extends modelManager
     }
 
     public function checkCorrectEmail($email) {
-        return true;
+        return preg_match('~^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$~', $email);
     }
 }

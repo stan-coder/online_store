@@ -94,3 +94,8 @@ body{
 .alCenter {
     margin: 0 auto;
 }
+
+.error {
+    color: red;
+    margin-left: 10px;
+}

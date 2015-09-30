@@ -6,8 +6,9 @@ class SessionModel extends modelManager
 
     private function start() {
         if (!self::$started) {
-            $initialName = $this->model('customFunction')->getIp() . $_SERVER['HTTP_USER_AGENT'] . $_SERVER['HTTP_ACCEPT_LANGUAGE'] . Config::$secretKey;
-            $name = strtoupper(substr(sha1($initialName), 0, 25));
+            $initialName = $this->model('customFunction')->getIp() . $_SERVER['HTTP_USER_AGENT'] . $_SERVER['HTTP_ACCEPT_LANGUAGE'] . $_SERVER['HTTP_HOST'] . Config::$secretKey;
+            $length = substr($strLen = (string)strlen($initialName), strlen((string)$strLen)-1, 1 );
+            $name = strtoupper(substr(sha1($initialName), 0, 20+intval($length)));
             session_name($name);
             session_start();
             self::$started = true;

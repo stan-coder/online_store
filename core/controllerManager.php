@@ -7,14 +7,14 @@
  */
 class controllerManager extends baseManager
 {
-    public static $variables = array(), $js = array(), $css = array(), $title = '', $isAjax = false, $noView = false, $layout = 'general', $matchUrl = null, $view = null;
+    public static $variables = array(), $js = array(), $css = array(), $title = '', $isAjax = false, $noView = false, $layout = 'general', $matchUrl = null, $view = null, $fieldError = [];
 
     /**
      * Get prepared resources
      *
      * @return string
      */
-    public static function getResources(){
+    public static function getResources() {
         $resources = '';
         foreach (self::$css as $css) {
             $resources .= "\t<link rel=\"stylesheet\" href=\"".
@@ -53,7 +53,7 @@ class controllerManager extends baseManager
      *
      * @param $fileName
      */
-    public function js($fileName){
+    public function js($fileName) {
         if (is_array($fileName)) {
             self::$js = array_merge(controllerManager::$js, $fileName);
         } else {
@@ -66,7 +66,7 @@ class controllerManager extends baseManager
      *
      * @param $fileName
      */
-    public function css($fileName){
+    public function css($fileName) {
         if (is_array($fileName)) {
             self::$css = array_merge(controllerManager::$css, $fileName);
         } else {
@@ -101,8 +101,7 @@ class controllerManager extends baseManager
      *
      * @return null
      */
-    public function getMatchUrl()
-    {
+    public function getMatchUrl() {
         return self::$matchUrl;
     }
 
@@ -111,8 +110,42 @@ class controllerManager extends baseManager
      *
      * @return mixed
      */
-    public function session()
-    {
+    public function session() {
         return $this->model('session');
+    }
+
+    /**
+     * Get message of field error
+     *
+     * @param $number
+     * @return mixed
+     */
+    public static function getFieldError($number) {
+        return (isset(self::$fieldError[$number])?self::$fieldError[$number]:$number);
+    }
+
+    /**
+     * Set message of field error
+     *
+     * @param $number
+     * @param $message
+     */
+    public function setFieldError($number, $message) {
+        self::$fieldError[$number] = ['message' => $message, 'valid' => false];
+    }
+
+    /**
+     * Check form on valid all fields
+     *
+     * @return bool
+     */
+    public function formIsValid() {
+        $checking = true;
+        array_walk(self::$fieldError, function($item) use(&$checking){
+            if ($item['valid'] === false) {
+                $checking = false;
+            }
+        });
+        return $checking;
     }
 }
