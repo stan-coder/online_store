@@ -27,7 +27,23 @@ class CustomFunctionModel extends modelManager
         return (bool)$this->db()->selectOne('select id from users where email = :email limit 1', [':email' => $email]);
     }
 
-    public function getMultiplePasswordEncode() {
+    public function getMultiplePasswordEncode($password, $salt) {
+        $hash = '';
+        for ($h=0; $h<50000; $h++) {
+            $hash = hash('sha512', $hash.$password.$salt.Config::$secretKey);
+        }
+        return $hash;
+    }
 
+    public function checkCorrectHash($hash) {
+        return count_chars(strtolower($hash), 3) === implode(array_merge(range(0, 9), range('a', 'f')));
+    }
+
+    public function getTypedField($nameField) {
+        return (isset($_POST[$nameField])) ? htmlspecialchars(strip_tags($_POST[$nameField])) : '';
+    }
+
+    public function sendConfirmationLink($email, $hash) {
+        return true;
     }
 }

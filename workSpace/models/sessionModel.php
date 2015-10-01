@@ -24,4 +24,9 @@ class SessionModel extends modelManager
         $this->start();
         $_SESSION[$name] = $value;
     }
+
+    public function remove($name) {
+        $this->start();
+        unset($_SESSION[$name]);
+    }
 }

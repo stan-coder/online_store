@@ -73,3 +73,16 @@
     display: block;
     margin-top: 10px;
 }
+
+.w330{
+    width: 330px;
+}
+
+.pd32{
+    padding: 23px;
+}
+
+.lgPanel{
+    width: 379px;
+    margin: 0 auto;
+}

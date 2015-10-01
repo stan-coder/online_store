@@ -7,7 +7,7 @@
  */
 class controllerManager extends baseManager
 {
-    public static $variables = array(), $js = array(), $css = array(), $title = '', $isAjax = false, $noView = false, $layout = 'general', $matchUrl = null, $view = null, $formFieldsError = [], $formFields = [];
+    public static $variables = array(), $js = array(), $css = array(), $title = '', $isAjax = false, $noView = false, $layout = 'general', $matchUrl = null, $view = null, $formFieldsError = [];
     protected $post = [];
 
     /**
@@ -90,7 +90,7 @@ class controllerManager extends baseManager
      * @param $controller
      * @param $name
      */
-    public function setView($name, $controller = null) {
+    protected function setView($name, $controller = null) {
         if (empty($controller)) {
             $controller = strtolower(substr(get_called_class(), 0, -10));
         }
@@ -163,5 +163,83 @@ class controllerManager extends baseManager
      */
     public function post($key) {
         return $this->post[$key];
+    }
+
+    /**
+     * Redirect to url
+     *
+     * @param $url
+     */
+    public function redirect($url) {
+        header('Location: '.$url);
+        exit;
+    }
+
+    /**
+     * If request was sent through method post
+     *
+     * @return bool
+     */
+    protected function isPost() {
+        return $_SERVER['REQUEST_METHOD'] == 'POST';
+    }
+
+    /**
+     * Init checking form
+     *
+     * @param $fields
+     * @return $this
+     */
+    protected function formInit($fields)
+    {
+        $initialValues = array_map(function($element) {
+            return ['message' => '', 'valid' => true, 'name' => $element];
+        }, $fields);
+        self::$formFieldsError = array_combine($fields, $initialValues);
+
+        if (!empty($absence = array_diff($fields, array_keys($_POST)))) {
+            array_walk($absence, function($item){
+                $this->setFieldError($item, 'The field "'.ucfirst($item).'" is required');
+            }, $this);
+        }
+        $this->post = array_map(function($element){
+            return trim($element);
+        }, $_POST);
+        return $this;
+    }
+
+    /**
+     * Validate field
+     *
+     * @param $field
+     * @param $condition
+     * @param $message
+     * @return $this
+     */
+    protected function valid($field, $condition, $message) {
+        $field = current($this->getFieldByIndex($field));
+        if ($field['valid']) {
+            $condition = (is_callable($condition)) ? (new ReflectionFunction($condition))->invoke($this) : $condition;
+            if ($condition) {
+                $this->setFieldError($field['name'], $message);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Check list of fields on empty one
+     *
+     * @return $this
+     */
+    protected function isEmpty() {
+        $fields = (count($fields = func_get_args()) > 0 ? $fields : range(0, count(self::$formFieldsError)-1));
+        foreach ($fields as $value) {
+            $key = key($this->getFieldByIndex($value));
+            if (empty($this->post($key))) {
+                $this->setFieldError($key, "The field \"{$key}\" cannot be empty");
+            }
+        }
+        return $this;
     }
 }

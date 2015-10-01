@@ -10,15 +10,6 @@ function crash($message) {
 }
 
 /**
- * Redirect to url
- *
- * @param $url
- */
-function redirect($url) {
-    header('Location: /'.$url);
-}
-
-/**
  * Set variables in order to render their in view
  *
  * @param $varInfo

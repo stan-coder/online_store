@@ -35,11 +35,11 @@ create table users (
   email varchar(20) not null,
   password char(128) not null,
   salt char(128) not null,
-  confirm_code varchar(128),
-  confirm_code_expired timestamp,
-  recover_password_code varchar(128),
-  recover_password_code_expired timestamp,
+  routine_hash_code varchar(128),
+  routine_hash_code_expired timestamp,
   is_active tinyint(1) not null default 1,
+  is_confirmed tinyint(1) not null default 0,
+  is_password_recover_code_sended tinyint(1) not null default 0,
   created date not null
 ) CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE=INNODB;
 

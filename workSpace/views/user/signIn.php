@@ -1,19 +1,31 @@
-<div class="col-sm-6 col-md-4 col-md-offset-4 alCenter" style="margin: 0 auto">
-    <h1 class="text-center login-title">Sign in to continue to Bootsnipp</h1>
-    <div class="account-wall">
-        <img class="profile-img" src="https://lh5.googleusercontent.com/-b0-k99FZlyE/AAAAAAAAAAI/AAAAAAAAAAA/eu7opA4byxI/photo.jpg?sz=120"
-             alt="">
-        <form class="form-signin">
-            <input type="text" class="form-control" placeholder="Email" required autofocus>
-            <input type="password" class="form-control" placeholder="Password" required>
-            <button class="btn btn-lg btn-primary btn-block" type="submit">
-                Sign in</button>
-            <label class="checkbox pull-left">
-                <input type="checkbox" value="remember-me">
-                Remember me
-            </label>
-            <a href="#" class="pull-right need-help">Need help? </a><span class="clearfix"></span>
+<?php if (controllerManager::$variables['registerComplete']) : ?>
+<div class="panel panel-info" style="width: 379px; margin: 0 auto;">
+    <div class="panel-heading">
+        <h3 class="panel-title">Registration complete</h3>
+    </div>
+    <div class="panel-body">
+        Congratulation! Your account have been created successful. In your email was sent message which contains confirmation link.<br/>
+        Check your email in order to pass that link.
+    </div>
+</div><br/>
+<?php endif; ?>
+<div class="panel panel-primary lgPanel">
+    <div class="panel-heading">
+        <h3 class="panel-title">Sign In</h3>
+    </div>
+    <div class="panel-body pd32">
+        <form action="/sign_in" method="post">
+            <label for="email">Email: </label><span class="error">{_err}</span>
+            <input type="text" name="email" id="email" class="form-control w330" value="{typedEmail}" maxlength="50" required />
+            <br/>
+            <label for="password">Password: </label><span class="error">{_err}</span>
+            <input type="password" name="password" id="password" class="form-control w330" required />
+            <br/>
+            <input type="submit" value="Sign In" class="btn btn-lg btn-primary"/>
+            <div style="position: absolute; width: 230px; height: auto; margin: -45px 0 0 100px">
+                <span class="error">{errorMessage}</span>
+            </div>
+            {CSRFProtection}
         </form>
     </div>
-    <a href="/registration" class="text-center new-account">Create an account </a>
 </div>
