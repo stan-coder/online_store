@@ -2,17 +2,19 @@
 
 class SessionModel extends modelManager
 {
+    public $name;
     private static $started = false;
 
-    private function start() {
+    public function start() {
         if (!self::$started) {
             $initialName = $this->model('customFunction')->getIp() . $_SERVER['HTTP_USER_AGENT'] . $_SERVER['HTTP_ACCEPT_LANGUAGE'] . $_SERVER['HTTP_HOST'] . Config::$secretKey;
             $length = substr($strLen = (string)strlen($initialName), strlen((string)$strLen)-1, 1 );
-            $name = strtoupper(substr(sha1($initialName), 0, 20+intval($length)));
+            $this->name = $name = strtoupper(substr(sha1($initialName), 0, 20+intval($length)));
             session_name($name);
             session_start();
             self::$started = true;
         }
+        return $this;
     }
 
     public function get($name) {

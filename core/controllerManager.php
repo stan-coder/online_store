@@ -7,7 +7,7 @@
  */
 class controllerManager extends baseManager
 {
-    public static $variables = array(), $js = array(), $css = array(), $title = '', $isAjax = false, $noView = false, $layout = 'general', $matchUrl = null, $view = null, $formFieldsError = [];
+    public static $variables = array(), $js = array(), $css = array(), $title = '', $isAjax = false, $noView = false, $layout = 'general', $matchUrl = null, $view = null, $formFieldsError = [], $isAuthorized = false;
     protected $post = [];
 
     /**
@@ -162,7 +162,7 @@ class controllerManager extends baseManager
      * @return mixed
      */
     public function post($key) {
-        return $this->post[$key];
+        return isset($this->post[$key]) ? $this->post[$key] : null;
     }
 
     /**

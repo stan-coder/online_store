@@ -36,11 +36,12 @@ create table users (
   password char(128) not null,
   salt char(128) not null,
   routine_hash_code varchar(128),
-  routine_hash_code_expired timestamp,
+  routine_hash_code_expired timestamp default 0,
   is_active tinyint(1) not null default 1,
   is_confirmed tinyint(1) not null default 0,
   is_password_recover_code_sended tinyint(1) not null default 0,
-  created date not null
+  created date not null,
+  last_visit timestamp default 0,
 ) CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE=INNODB;
 
 create table attempts (
@@ -52,13 +53,9 @@ create table attempts (
 
 create table users_sessions (
   id int unsigned not null primary key auto_increment,
-  user_id int unsigned not null,
+  user_id int unsigned not null unique,
   hash char(128) not null,
-  ip varchar(15) not null,
-  agent varchar(100) not null,
-  expire timestamp,
-  session_name char(100) not null,
-  session_id char(100) not null,
+  expire timestamp default 0,
   foreign key (user_id) references users (id) on update cascade on delete cascade
 ) CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE=INNODB;
 
@@ -171,6 +168,28 @@ create table languages_books_books (
   foreign key (languages_books_id) references languages_books (id) on update cascade on delete cascade,
   foreign key (book_id) references books (id) on update cascade on delete cascade
 ) CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE=INNODB;
+
+DELIMITER //
+CREATE PROCEDURE insert_session_and_if_exists_remove_obsolete (IN _user_id INT, IN _hash CHAR(128), IN _expire TINYINT(1))
+  BEGIN
+    SET @exp = '0';
+    IF (_expire = 1) THEN
+      SET @exp = 'DATE_ADD(NOW(), INTERVAL 1 MONTH)';
+    END IF;
+
+    IF (SELECT exists(SELECT `id` FROM `users_sessions` WHERE `user_id` = _user_id LIMIT 1)) THEN
+      SET @sql = CONCAT('UPDATE `users_sessions` SET `hash` = ?, `expire` = ', @exp, ' WHERE `user_id` = ?');
+      PREPARE stmt FROM @sql;
+    ELSE
+      SET @sql = CONCAT('INSERT INTO `users_sessions` (`hash`, `user_id`, `expire`) VALUES (?, ?, ', @exp, ')');
+      PREPARE stmt FROM @sql;
+    END IF;
+
+    SET @ui = _user_id;
+    SET @h = _hash;
+    EXECUTE stmt USING @h, @ui;
+  END; //
+DELIMITER ;
 
 ---------------------------------------------------------------------------------
 

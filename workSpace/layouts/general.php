@@ -18,10 +18,11 @@
             </button>
             <a class="navbar-brand" href="/">Online store of goods</a>
         </div>
+        <?php var_dump(controllerManager::$isAuthorized); ?>
         <div id="navbar" class="navbar-collapse collapse">
                 <button onclick="document.location.assign('/sign_in'); return false;" type="button" class="ua1 userActionButton btn btn-success">Sign in</button>
                 <button onclick="document.location.assign('/registration'); return false;" type="button" class="ua2 userActionButton btn btn-success">Create account</button>
-        </div><!--/.navbar-collapse -->
+        </div>
     </div>
 </nav>
 <?php renderPartial('renderGeneralMenu');?>

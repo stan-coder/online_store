@@ -36,8 +36,11 @@ class Render
         } else {
             header('Content-Type: text/html; charset=utf-8');
         }
+        /*$user = ($controllerName != 'user' ? new UserController() : $controllerExemplar);
+        $user->credential($routingInfo);*/
+
         if (method_exists($controllerExemplar, 'preController')) {
-            $controllerExemplar->preController();
+            $controllerExemplar->preController($routingInfo);
         }
         /**
          * Begin gradually execute and response
