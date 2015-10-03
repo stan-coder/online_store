@@ -11,6 +11,15 @@ class controllerManager extends baseManager
     protected $post = [];
 
     /**
+     * Check authorization
+     */
+    public function __construct($rInfo) {
+        $distinctUrl = in_array($rInfo['function'], ['signIn', 'registration']);
+        self::$isAuthorized = $credential = $this->model('auth')->checkCredential();
+        if (get_called_class() == 'UserController' && (!$credential && !$distinctUrl || $credential && $distinctUrl)) $this->redirect('/');
+    }
+
+    /**
      * Get prepared resources
      *
      * @return string

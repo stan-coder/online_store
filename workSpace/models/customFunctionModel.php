@@ -4,11 +4,9 @@ class CustomFunctionModel extends modelManager
 {
     public function getIp() {
         foreach (['X_FORWARDED_FOR', 'HTTP_X_FORWARDED_FOR', 'CLIENT_IP', 'REMOTE_ADDR'] as $key) {
-            if (isset($_SERVER[$key])) {
-                return $_SERVER[$key];
-            }
+            if (isset($_SERVER[$key])) return $_SERVER[$key];
         }
-        return $_SERVER['REMOTE_ADDR'];
+        return 'Undefined IP';
     }
 
     public function getRandomString($length = 100) {
@@ -45,5 +43,9 @@ class CustomFunctionModel extends modelManager
 
     public function sendConfirmationLink($email, $hash) {
         return true;
+    }
+
+    public function getServerVariable($key) {
+        return isset($_SERVER[$key]) ? $_SERVER[$key] : null;
     }
 }

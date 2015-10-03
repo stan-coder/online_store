@@ -5,7 +5,7 @@ class AuthModel extends modelManager
     public function authorization($userId, $email, $expire) {
 
         $sql = "call insert_session_and_if_exists_remove_obsolete(?, ?, ?);";
-        $sesName = $this->model('session')->start()->name;
+        $sesName = $this->model('session')->getName();
         $hash = hash('sha512', $userId . $email . $sesName . session_id() . $_SERVER['HTTP_USER_AGENT'] . $this->model('customFunction')->getIp() . Config::$secretKey . $this->model('customFunction')->getRandomString() . microtime());
 
         $isInserted = $this->db()->exec($sql, [
@@ -22,7 +22,7 @@ class AuthModel extends modelManager
 
     public function hasSessionUserData($userId, $hash) {
         return (is_numeric($userId) &&
-            $userId > 01 &&
+            $userId > 0 &&
             !is_null($hash) &&
             strlen((string)$hash) === 128 &&
             $this->model('customFunction')->checkCorrectHash($hash));
@@ -44,7 +44,7 @@ class AuthModel extends modelManager
 
         $this->model('session')->remove('userId');
         $this->model('session')->remove('userSessionHash');
-        setcookie($this->model('session')->name, '', time() - 42000);
+        setcookie($this->model('session')->getName(), '', time() - 42000);
         session_destroy();
 
         header('Location: /');

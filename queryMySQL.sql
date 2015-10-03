@@ -32,7 +32,7 @@ create table products (
 
 create table users (
   id int unsigned not null primary key auto_increment,
-  email varchar(20) not null,
+  email varchar(50) not null,
   password char(128) not null,
   salt char(128) not null,
   routine_hash_code varchar(128),
@@ -178,7 +178,7 @@ CREATE PROCEDURE insert_session_and_if_exists_remove_obsolete (IN _user_id INT, 
     END IF;
 
     IF (SELECT exists(SELECT `id` FROM `users_sessions` WHERE `user_id` = _user_id LIMIT 1)) THEN
-      SET @sql = CONCAT('UPDATE `users_sessions` SET `hash` = ?, `expire` = ', @exp, ' WHERE `user_id` = ?');
+      SET @sql = CONCAT('UPDATE `users_sessions` SET `hash` = ?, `expire` = ', @exp, ' WHERE `user_id` = ? LIMIT 1');
       PREPARE stmt FROM @sql;
     ELSE
       SET @sql = CONCAT('INSERT INTO `users_sessions` (`hash`, `user_id`, `expire`) VALUES (?, ?, ', @exp, ')');
@@ -187,7 +187,12 @@ CREATE PROCEDURE insert_session_and_if_exists_remove_obsolete (IN _user_id INT, 
 
     SET @ui = _user_id;
     SET @h = _hash;
-    EXECUTE stmt USING @h, @ui;
+    START TRANSACTION;
+      EXECUTE stmt USING @h, @ui;
+      UPDATE `users` SET `last_visit` = CURRENT_TIMESTAMP WHERE `id` = _user_id LIMIT 1;
+      SET @row_count = (SELECT ROW_COUNT());
+    COMMIT;
+    SELECT @row_count as rc;
   END; //
 DELIMITER ;
 

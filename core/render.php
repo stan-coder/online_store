@@ -13,7 +13,7 @@ class Render
      */
     public function execute($routingInfo, $controllerName, $controllerPath){
         $reflect = new ReflectionClass(ucfirst($controllerName) . 'Controller');
-        $controllerExemplar = $reflect->newInstance();
+        $controllerExemplar = $reflect->newInstance($routingInfo);
 
         if (!method_exists($controllerExemplar, $routingInfo['function'])) {
             crash("Controller '$controllerName' does not contained method '$routingInfo[function]' controller. Path: $controllerPath");
@@ -36,9 +36,6 @@ class Render
         } else {
             header('Content-Type: text/html; charset=utf-8');
         }
-        /*$user = ($controllerName != 'user' ? new UserController() : $controllerExemplar);
-        $user->credential($routingInfo);*/
-
         if (method_exists($controllerExemplar, 'preController')) {
             $controllerExemplar->preController($routingInfo);
         }

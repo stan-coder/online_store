@@ -21,12 +21,6 @@ class UserController extends controllerManager
     ],
     $noView = ['signOut'];
 
-    public function preController($ri) {
-        $distinctUrl = in_array($ri['function'], ['signIn', 'registration']);
-        self::$isAuthorized = $credential = $this->model('auth')->checkCredential();
-        if ((!$credential && !$distinctUrl) || ($credential && $distinctUrl)) $this->redirect('/');
-    }
-
     /**
      * Registration new user
      */
