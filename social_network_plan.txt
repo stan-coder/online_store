@@ -1,0 +1,121 @@
+Tables:
+
+Groups:
+    id:
+    uid:
+    event_id:
+    type: (enum)
+    title: (varchar(100))
+    description:
+    created: (data now())
+
+Groups_publications:
+    id:
+    uid:
+    user_id:
+    event_id:
+    content: (text)
+    created: (timestamp)
+
+Comments:
+    id:
+    user_id:
+    event_id:
+    event_parent_id:
+    content: (text)
+    created: (timestamp)
+
+Events:
+    id:
+
+Likes:
+    id:
+    user_id:
+    event_id:
+    created: (timestamp)
+
+
+
+Notifications_single:
+    id:
+    destination_user_id:
+    sender_user_id:
+    type: (enum) (N предлагает вам вступить в группу, N прокомментировал вашу фотографию, N предлагает вам поучавствовать в опросе)
+    event_id:
+    viewed:
+
+Notifications_single_ignore_only_event:
+    id:
+    user_id:
+    event_id:
+    remain_only_from_friends: (bool)
+
+Notifications_single_ignore_only_entity_from_user:
+    id:
+    user_id:
+    ignore_user_id:
+    event_id:
+
+Notifications_single_ignore_all_notifications_from_user:
+    id:
+    user_id:
+    ignore_user_id:
+
+Notifications_many:  [N прокомментировал публикацию M, N создал публикацю в группе X, N упомянул вас в комментарии]
+    id:
+    event_id:
+    user_id:
+
+
+
+
+
+Groups_Users:
+    id:
+    group_id:
+    user_id:
+
+Hidden_events:
+    id:
+    user_id:
+    event_id:
+
+Comments_viewed_by_users:
+    id:
+    event_id:
+    user_id:
+
+Total_event_views:
+    id:
+    event_id:
+    user_id: (int)
+
+
+
+
+
+Users_publications:
+    id:
+    uid:
+    user_id:
+    event_id:
+    content:
+    created: (timestamp)
+
+Users_chronicles:
+    id:
+    user_id:
+    event_id:
+    created: (timestamp)
+
+Shared_entyty:
+    id:
+    event_id:
+    accompanying_text: (text)
+
+
+-- Of course, it could be created with using "many to many" relations. But there is an issue: redundancy of keys (user_id that is referred to viewd user_id, i.e. each record of viewed user requires additional "new user_id")
+Groups_new_users:
+    id:
+    user_id:
+    bunch_users_that_viewed:
