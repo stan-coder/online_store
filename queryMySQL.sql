@@ -96,7 +96,7 @@ create table marks_products (
   foreign key (product_id) references products (id) on update cascade on delete cascade
 ) CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE=INNODB;
 
-create table likes (
+create table ost_likes (
   id int unsigned not null primary key auto_increment,
   assessment tinyint(1) not null,
   product_id int unsigned not null,
@@ -248,3 +248,213 @@ insert into books (title, description, product_id) values ('Новая книг�
 insert into authors (first_name, surname, description) values ('Девид', 'Фленаган', 'Автор популярных книг о JavaScript');
 insert into authors (first_name, surname, description) values ('Артур', 'Кудрявцев', 'Выпустил книги главным образом по математике');
 insert into authors (first_name, surname, description) values ('Sarah', 'McLux', 'Программист в области web-приложений');
+
+-----------------------------------------------
+---------- social network
+
+CREATE TABLE entities (
+
+  id int(11) AUTO_INCREMENT NOT NULL,
+  parent_id int(11) DEFAULT NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (parent_id) REFERENCES entities(id) ON UPDATE CASCADE ON DELETE CASCADE
+
+) ENGINE=InnoDB;
+
+
+CREATE TABLE groups (
+
+  entity_id int(11) NOT NULL,
+  uid bigint(20) NOT NULL,
+  description varchar(200) NOT NULL,
+  created timestamp default CURRENT_TIMESTAMP,
+  PRIMARY KEY (entity_id),
+  FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE=InnoDB;
+
+
+CREATE TABLE type_entities (
+
+  id int(11) AUTO_INCREMENT NOT NULL,
+  title varchar(30) NOT NULL,
+  PRIMARY KEY (id)
+
+) ENGINE=InnoDB;
+
+
+CREATE TABLE entities_sheet (
+
+  entity_id int(11) NOT NULL,
+  type_entity_id int(11) NOT NULL,
+  created timestamp default CURRENT_TIMESTAMP,
+  PRIMARY KEY (entity_id),
+  FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (type_entity_id) REFERENCES type_entities(id) ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE=InnoDB;
+
+
+CREATE TABLE publications (
+
+  entity_sheet_id int(11) NOT NULL,
+  content text NOT NULL,
+  created timestamp default CURRENT_TIMESTAMP,
+  PRIMARY KEY (entity_sheet_id),
+  FOREIGN KEY (entity_sheet_id) REFERENCES entities_sheet(entity_id) ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE=InnoDB;
+
+
+CREATE TABLE reposts (
+
+  entity_sheet_id int(11) NOT NULL,
+  decription text NOT NULL,
+  created timestamp default CURRENT_TIMESTAMP,
+  PRIMARY KEY (entity_sheet_id),
+  FOREIGN KEY (entity_sheet_id) REFERENCES entities_sheet(entity_id) ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE=InnoDB;
+
+
+CREATE TABLE owners_reposts (
+  entity_repost_id int(11) NOT NULL,
+  entity_owner_id int(11) NOT NULL,
+  created timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (entity_repost_id) REFERENCES reposts(entity_sheet_id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (entity_owner_id) REFERENCES entities(id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+CREATE TABLE users (
+
+  entity_id int(11) NOT NULL,
+  email varchar(50) NOT NULL,
+  PRIMARY KEY (entity_id),
+  FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE=InnoDB;
+
+
+CREATE TABLE likes (
+
+  entity_id int(11) NOT NULL,
+  entity_id_user int(11) NOT NULL,
+  UNIQUE (entity_id, entity_id_user),
+  FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (entity_id_user) REFERENCES users(entity_id)  ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE=InnoDB;
+
+
+CREATE TABLE reviews_entities (
+
+  entity_id int(11) NOT NULL,
+  entity_user_id int(11) NOT NULL,
+  FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (entity_user_id) REFERENCES users(entity_id) ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoBD;
+
+
+CREATE TABLE not_viewed_new_comments_by_users (
+
+  entity_user_id int(11) NOT NULL,
+  entity_comment_id int(11) NOT NULL,
+  FOREIGN KEY (entity_user_id) REFERENCES users(entity_id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (entity_comment_id) REFERENCES comments(entity_id) ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoBD;
+
+
+CREATE TABLE not_owners_created_entities (
+
+  entity_user_id int(11) NOT NULL,
+  entity_id int(11) NOT NULL,
+  UNIQUE (entity_id, entity_user_id),
+  FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (entity_user_id) REFERENCES users(entity_id) ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoBD;
+
+
+CREATE TABLE ignored_entities_by_users (
+
+  entity_user_id int(11) NOT NULL,
+  entity_id int(11) NOT NULL,
+  UNIQUE (entity_id, entity_user_id),
+  FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (entity_user_id) REFERENCES users(entity_id) ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoBD;
+
+
+CREATE TABLE reposts_parents_trees (
+  entity_repost_id int(11) NOT NULL,
+  entity_repost_parent_id int(11) NOT NULL,
+  FOREIGN KEY (entity_repost_id) REFERENCES reposts(entity_sheet_id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (entity_repost_parent_id) REFERENCES reposts(entity_sheet_id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+CREATE TABLE comments (
+
+  entity_id int(11) NOT NULL,
+  entity_user_id int(11) NOT NULL,
+  content text NOT NULL,
+  UNIQUE (entity_id, entity_user_id),
+  FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (entity_user_id) REFERENCES users(entity_id) ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE=InnoDB;
+
+
+CREATE TABLE sub_comments_total_count (
+  entity_parent_comment_id int(11) NOT NULL,
+  children_count int(11) NOT NULL,
+  FOREIGN KEY (entity_parent_comment_id) REFERENCES comments(entity_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE groups_users (
+  entity_group_id int(11) NOT NULL,
+  entity_user_id int(11) NOT NULL,
+  UNIQUE (entity_group_id, entity_user_id),
+  FOREIGN KEY (entity_group_id) REFERENCES groups(entity_id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (entity_user_id) REFERENCES users(entity_id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE groups_admins (
+  entity_group_id int(11) NOT NULL,
+  entity_user_id int(11) NOT NULL,
+  UNIQUE (entity_group_id, entity_user_id),
+  FOREIGN KEY (entity_group_id) REFERENCES groups(entity_id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (entity_user_id) REFERENCES users(entity_id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+select t1.e_id entity_id, t1.e_type entity_type, t1.created created, l2.likes_count likes_count, notown.entity_user_id not_owner_entity_user_id, e2.reposts_count reposts_count,
+  re2.reviews_count reviews_count, e5.comments_count comments_count, e5.total_comments_count total_comments_count
+from (
+  ((select esh.entity_id e_id, esh.type_entity_id e_type, esh.created from groups g
+    left join entities e1 on g.entity_id = e1.parent_id
+    left join entities_sheet esh on e1.id = esh.entity_id
+  where g.uid = 5261037467)
+    union
+    (select owr.entity_repost_id e_id, 2 as e_type, owr.created from groups g
+    left join owners_reposts owr on g.entity_id = owr.entity_owner_id
+    where g.uid = 5261037467)) as t1
+  )
+  left join (select entity_user_id, entity_id from ignored_entities_by_users ign where ign.entity_user_id = 8) as t2 on t1.e_id = t2.entity_id
+  left join (select l1.entity_id, count(l1.entity_id) likes_count from likes l1 group by l1.entity_id) l2 on t1.e_id = l2.entity_id
+  left join not_owners_created_entities notown on t1.e_id = notown.entity_id
+  left join (
+    select e3.parent_id, count(e3.id) as reposts_count from entities e3
+      left join reposts r1 on e3.id = r1.entity_sheet_id where r1.entity_sheet_id is not null group by e3.parent_id) e2 on t1.e_id = e2.parent_id
+  left join (select re1.entity_id, count(re1.entity_id) as reviews_count from reviews_entities re1 group by re1.entity_id) re2 on t1.e_id = re2.entity_id
+  left join (select e4.parent_id, count(c.entity_id) as comments_count, count(c.entity_id)+sum(sc.children_count) as total_comments_count from comments c
+    left join entities e4 on c.entity_id = e4.id
+    left join sub_comments_total_count sc on c.entity_id = sc.entity_parent_comment_id
+  group by e4.parent_id) as e5 on e5.parent_id = t1.e_id
+
+where t2.entity_id is null
+order by t1.created, t1.e_id
