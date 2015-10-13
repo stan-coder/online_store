@@ -1,5 +1,6 @@
 <?php function getRoute(){return array(
 '~^/book/(\d+)$~m'=>array('function'=>'book','controller'=>'books'),
+'~^/group/\d{14}$~m'=>array('function'=>'sheet','controller'=>'groups'),
 '/'=>array('title'=>'Online store of goods','function'=>'index','controller'=>'main'),
 '~^/catalog/(\d+)$~m'=>array('function'=>'catalog','controller'=>'main'),
 '~^/sub_catalog/(\d+)$~m'=>array('function'=>'subCatalog','controller'=>'main'),

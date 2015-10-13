@@ -5,6 +5,36 @@ SET time_zone = '+00:00';
 SET foreign_key_checks = 0;
 SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
 
+DELIMITER ;;
+
+DROP PROCEDURE IF EXISTS `insert_session_and_if_exists_remove_obsolete`;;
+CREATE PROCEDURE `insert_session_and_if_exists_remove_obsolete`(IN _user_id INT, IN _hash CHAR(128), IN _expire TINYINT(1))
+BEGIN
+    SET @exp = '0';
+    IF (_expire = 1) THEN
+      SET @exp = 'DATE_ADD(NOW(), INTERVAL 1 MONTH)';
+    END IF;
+
+    IF (SELECT exists(SELECT `id` FROM `users_sessions` WHERE `user_id` = _user_id LIMIT 1)) THEN
+      SET @sql = CONCAT('UPDATE `users_sessions` SET `hash` = ?, `expire` = ', @exp, ' WHERE `user_id` = ? LIMIT 1');
+      PREPARE stmt FROM @sql;
+    ELSE
+      SET @sql = CONCAT('INSERT INTO `users_sessions` (`hash`, `user_id`, `expire`) VALUES (?, ?, ', @exp, ')');
+      PREPARE stmt FROM @sql;
+    END IF;
+
+    SET @ui = _user_id;
+    SET @h = _hash;
+    START TRANSACTION;
+      EXECUTE stmt USING @h, @ui;
+      UPDATE `users` SET `last_visit` = CURRENT_TIMESTAMP WHERE `id` = _user_id LIMIT 1;
+      SET @row_count = (SELECT ROW_COUNT());
+    COMMIT;
+    SELECT @row_count as rc;
+  END;;
+
+DELIMITER ;
+
 DROP TABLE IF EXISTS `attempts`;
 CREATE TABLE `attempts` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -91,6 +121,78 @@ INSERT INTO `books` (`id`, `title`, `description`, `product_id`) VALUES
 (14,	'Современный сайт на JS',	'',	14),
 (15,	'Новая книга по JS',	'new book',	15);
 
+DROP TABLE IF EXISTS `comments`;
+CREATE TABLE `comments` (
+  `entity_id` int(11) NOT NULL,
+  `entity_user_id` int(11) NOT NULL,
+  `content` text NOT NULL,
+  UNIQUE KEY `entity_id` (`entity_id`,`entity_user_id`),
+  KEY `entity_user_id` (`entity_user_id`),
+  CONSTRAINT `comments_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `comments_ibfk_2` FOREIGN KEY (`entity_user_id`) REFERENCES `users` (`entity_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `comments` (`entity_id`, `entity_user_id`, `content`) VALUES
+(15,	8,	'Первый комментарий для (Первая публикация в группу про крылья id=2)'),
+(16,	9,	'Второй комментарий для (Первая публикация в группу про крылья id=2)'),
+(17,	10,	'Первый Ответ для первого комментария (id=15)'),
+(18,	10,	'Третий комментарий для (Первая публикация в группу про крылья id=2)'),
+(19,	9,	'Первый Ответ для третьего комментария (id=18)'),
+(20,	8,	'Второй Ответ для третьего комментария (id=18)');
+
+DROP TABLE IF EXISTS `entities`;
+CREATE TABLE `entities` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `parent_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `parent_id` (`parent_id`),
+  CONSTRAINT `entities_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `entities` (`id`, `parent_id`) VALUES
+(1,	NULL),
+(4,	NULL),
+(8,	NULL),
+(9,	NULL),
+(10,	NULL),
+(2,	1),
+(3,	1),
+(7,	1),
+(11,	2),
+(12,	2),
+(13,	2),
+(14,	2),
+(15,	2),
+(16,	2),
+(18,	2),
+(5,	4),
+(6,	5),
+(17,	15),
+(19,	18),
+(20,	18);
+
+DROP TABLE IF EXISTS `entities_sheet`;
+CREATE TABLE `entities_sheet` (
+  `entity_id` int(11) NOT NULL,
+  `type_entity_id` int(11) NOT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`entity_id`),
+  KEY `type_entity_id` (`type_entity_id`),
+  CONSTRAINT `entities_sheet_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `entities_sheet_ibfk_2` FOREIGN KEY (`type_entity_id`) REFERENCES `type_entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `entities_sheet` (`entity_id`, `type_entity_id`, `created`) VALUES
+(2,	1,	'2015-10-10 02:15:50'),
+(3,	1,	'2015-10-10 02:16:43'),
+(5,	1,	'2015-10-10 02:18:14'),
+(6,	2,	'2015-10-10 02:46:48'),
+(7,	1,	'2015-10-10 03:40:29'),
+(11,	2,	'2015-10-10 08:09:12'),
+(12,	2,	'2015-10-10 08:12:34'),
+(13,	2,	'2015-10-10 08:37:21'),
+(14,	2,	'2015-10-10 08:39:52');
+
 DROP TABLE IF EXISTS `general_catalog`;
 CREATE TABLE `general_catalog` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -125,6 +227,34 @@ INSERT INTO `goods_bunch` (`id`, `title`, `enabled`, `sub_catalog_id`) VALUES
 (5,	'English for Beginner',	1,	2),
 (6,	'Aizek',	1,	2);
 
+DROP TABLE IF EXISTS `groups`;
+CREATE TABLE `groups` (
+  `entity_id` int(11) NOT NULL,
+  `uid` bigint(20) NOT NULL,
+  `description` varchar(200) NOT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`entity_id`),
+  CONSTRAINT `groups_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `groups` (`entity_id`, `uid`, `description`, `created`) VALUES
+(1,	5261037467,	'Группа про крылья',	'2015-10-10 02:12:28'),
+(4,	6454528855,	'Группа про ртуть',	'2015-10-10 02:17:32');
+
+DROP TABLE IF EXISTS `ignored_entities_by_users`;
+CREATE TABLE `ignored_entities_by_users` (
+  `entity_user_id` int(11) NOT NULL,
+  `entity_id` int(11) NOT NULL,
+  UNIQUE KEY `entity_id` (`entity_id`,`entity_user_id`),
+  KEY `entity_user_id` (`entity_user_id`),
+  CONSTRAINT `ignored_entities_by_users_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `ignored_entities_by_users_ibfk_2` FOREIGN KEY (`entity_user_id`) REFERENCES `users` (`entity_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `ignored_entities_by_users` (`entity_user_id`, `entity_id`) VALUES
+(8,	3),
+(9,	7);
+
 DROP TABLE IF EXISTS `languages_books`;
 CREATE TABLE `languages_books` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -148,14 +278,20 @@ CREATE TABLE `languages_books_books` (
 
 DROP TABLE IF EXISTS `likes`;
 CREATE TABLE `likes` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `assessment` tinyint(1) NOT NULL,
-  `product_id` int(10) unsigned NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `product_id` (`product_id`),
-  CONSTRAINT `likes_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  `entity_id` int(11) NOT NULL,
+  `entity_id_user` int(11) NOT NULL,
+  UNIQUE KEY `entity_id` (`entity_id`,`entity_id_user`),
+  KEY `entity_id_user` (`entity_id_user`),
+  CONSTRAINT `likes_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `likes_ibfk_2` FOREIGN KEY (`entity_id_user`) REFERENCES `users` (`entity_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+INSERT INTO `likes` (`entity_id`, `entity_id_user`) VALUES
+(2,	8),
+(6,	8),
+(2,	9),
+(6,	9),
+(6,	10);
 
 DROP TABLE IF EXISTS `marks`;
 CREATE TABLE `marks` (
@@ -191,6 +327,30 @@ CREATE TABLE `notification_about_presence_goods` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+DROP TABLE IF EXISTS `not_owners_created_entities`;
+CREATE TABLE `not_owners_created_entities` (
+  `entity_user_id` int(11) NOT NULL,
+  `entity_id` int(11) NOT NULL,
+  UNIQUE KEY `entity_id` (`entity_id`,`entity_user_id`),
+  KEY `entity_user_id` (`entity_user_id`),
+  CONSTRAINT `not_owners_created_entities_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `not_owners_created_entities_ibfk_2` FOREIGN KEY (`entity_user_id`) REFERENCES `users` (`entity_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `not_owners_created_entities` (`entity_user_id`, `entity_id`) VALUES
+(9,	2);
+
+DROP TABLE IF EXISTS `not_viewed_new_comments_by_users`;
+CREATE TABLE `not_viewed_new_comments_by_users` (
+  `entity_user_id` int(11) NOT NULL,
+  `entity_comment_id` int(11) NOT NULL,
+  KEY `entity_user_id` (`entity_user_id`),
+  KEY `entity_comment_id` (`entity_comment_id`),
+  CONSTRAINT `not_viewed_new_comments_by_users_ibfk_1` FOREIGN KEY (`entity_user_id`) REFERENCES `users` (`entity_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `not_viewed_new_comments_by_users_ibfk_2` FOREIGN KEY (`entity_comment_id`) REFERENCES `comments` (`entity_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
 DROP TABLE IF EXISTS `orders_goods`;
 CREATE TABLE `orders_goods` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -201,6 +361,35 @@ CREATE TABLE `orders_goods` (
   CONSTRAINT `orders_goods_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+
+DROP TABLE IF EXISTS `ost_likes`;
+CREATE TABLE `ost_likes` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `assessment` tinyint(1) NOT NULL,
+  `product_id` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `ost_likes_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+DROP TABLE IF EXISTS `owners_reposts`;
+CREATE TABLE `owners_reposts` (
+  `entity_repost_id` int(11) NOT NULL,
+  `entity_owner_id` int(11) NOT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY `entity_repost_id` (`entity_repost_id`),
+  KEY `entity_owner_id` (`entity_owner_id`),
+  CONSTRAINT `owners_reposts_ibfk_1` FOREIGN KEY (`entity_repost_id`) REFERENCES `reposts` (`entity_sheet_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `owners_reposts_ibfk_2` FOREIGN KEY (`entity_owner_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `owners_reposts` (`entity_repost_id`, `entity_owner_id`, `created`) VALUES
+(6,	1,	'2015-10-10 02:46:48'),
+(11,	9,	'2015-10-10 08:11:24'),
+(12,	10,	'2015-10-10 08:13:38'),
+(13,	8,	'2015-10-10 08:38:05'),
+(14,	4,	'2015-10-10 08:40:57');
 
 DROP TABLE IF EXISTS `products`;
 CREATE TABLE `products` (
@@ -230,6 +419,21 @@ INSERT INTO `products` (`id`, `price`, `presence`, `new_mark`, `goods_bunch_id`)
 (13,	452,	1,	1,	1),
 (14,	2322,	1,	1,	1),
 (15,	742,	1,	1,	1);
+
+DROP TABLE IF EXISTS `publications`;
+CREATE TABLE `publications` (
+  `entity_sheet_id` int(11) NOT NULL,
+  `content` text NOT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`entity_sheet_id`),
+  CONSTRAINT `publications_ibfk_1` FOREIGN KEY (`entity_sheet_id`) REFERENCES `entities_sheet` (`entity_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `publications` (`entity_sheet_id`, `content`, `created`) VALUES
+(2,	'Первая публикация в группу про крылья',	'2015-10-10 02:15:50'),
+(3,	'Вторая публикация в группу про крылья',	'2015-10-10 02:16:43'),
+(5,	'Первая публикация в группу про РТУТЬ',	'2015-10-10 02:18:14'),
+(7,	'Третья публикация в группу про крылья',	'2015-10-10 03:41:18');
 
 DROP TABLE IF EXISTS `publishing_house`;
 CREATE TABLE `publishing_house` (
@@ -266,6 +470,49 @@ CREATE TABLE `recalls` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+DROP TABLE IF EXISTS `reposts`;
+CREATE TABLE `reposts` (
+  `entity_sheet_id` int(11) NOT NULL,
+  `decription` text NOT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`entity_sheet_id`),
+  CONSTRAINT `reposts_ibfk_1` FOREIGN KEY (`entity_sheet_id`) REFERENCES `entities_sheet` (`entity_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `reposts` (`entity_sheet_id`, `decription`, `created`) VALUES
+(6,	'Репост для (первая публикация в группу про ртуть) группы про крылья',	'2015-10-10 02:46:48'),
+(11,	'Репост для (Первая публикация в группу про крылья) от пользователя id=9',	'2015-10-10 08:09:32'),
+(12,	'Репост для (Первая публикация в группу про крылья) от пользователя id=10',	'2015-10-10 08:13:19'),
+(13,	'Репост для (Первая публикация в группу про крылья) от пользователя id=8',	'2015-10-10 08:37:49'),
+(14,	'Репост для (Первая публикация в группу про крылья) от ГРУППЫ id=4',	'2015-10-10 08:40:19');
+
+DROP TABLE IF EXISTS `reposts_parents_trees`;
+CREATE TABLE `reposts_parents_trees` (
+  `entity_repost_id` int(11) NOT NULL,
+  `entity_repost_parent_id` int(11) NOT NULL,
+  KEY `entity_repost_id` (`entity_repost_id`),
+  KEY `entity_repost_parent_id` (`entity_repost_parent_id`),
+  CONSTRAINT `reposts_parents_trees_ibfk_1` FOREIGN KEY (`entity_repost_id`) REFERENCES `reposts` (`entity_sheet_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `reposts_parents_trees_ibfk_2` FOREIGN KEY (`entity_repost_parent_id`) REFERENCES `reposts` (`entity_sheet_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+DROP TABLE IF EXISTS `reviews_entities`;
+CREATE TABLE `reviews_entities` (
+  `entity_id` int(11) NOT NULL,
+  `entity_user_id` int(11) NOT NULL,
+  KEY `entity_id` (`entity_id`),
+  KEY `entity_user_id` (`entity_user_id`),
+  CONSTRAINT `reviews_entities_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `reviews_entities_ibfk_2` FOREIGN KEY (`entity_user_id`) REFERENCES `users` (`entity_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `reviews_entities` (`entity_id`, `entity_user_id`) VALUES
+(7,	9),
+(7,	10),
+(7,	8),
+(6,	10);
+
 DROP TABLE IF EXISTS `sub_catalog`;
 CREATE TABLE `sub_catalog` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -283,6 +530,29 @@ INSERT INTO `sub_catalog` (`id`, `title`, `ordering`, `enabled`, `catalog_id`) V
 (2,	'Иностранные',	2,	1,	1),
 (3,	'Медицинские',	3,	1,	1);
 
+DROP TABLE IF EXISTS `sub_comments_total_count`;
+CREATE TABLE `sub_comments_total_count` (
+  `entity_parent_comment_id` int(11) NOT NULL,
+  `children_count` int(11) NOT NULL,
+  KEY `entity_parent_comment_id` (`entity_parent_comment_id`),
+  CONSTRAINT `sub_comments_total_count_ibfk_1` FOREIGN KEY (`entity_parent_comment_id`) REFERENCES `comments` (`entity_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `sub_comments_total_count` (`entity_parent_comment_id`, `children_count`) VALUES
+(15,	1),
+(18,	2);
+
+DROP TABLE IF EXISTS `type_entities`;
+CREATE TABLE `type_entities` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(30) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `type_entities` (`id`, `title`) VALUES
+(1,	'publications'),
+(2,	'reposts');
+
 DROP TABLE IF EXISTS `usefulness_recalls`;
 CREATE TABLE `usefulness_recalls` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -297,33 +567,37 @@ CREATE TABLE `usefulness_recalls` (
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `email` varchar(20) NOT NULL,
-  `password` char(128) NOT NULL,
+  `email` varchar(50) NOT NULL,
+  `password` char(178) NOT NULL,
   `salt` char(128) NOT NULL,
-  `confirm_code` varchar(128) DEFAULT NULL,
-  `confirm_code_expired` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `recover_password_code` varchar(128) DEFAULT NULL,
-  `recover_password_code_expired` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `routine_hash_code` varchar(128) DEFAULT NULL,
+  `routine_hash_code_expired` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `is_confirmed` tinyint(1) NOT NULL DEFAULT '0',
+  `is_password_recover_code_sended` tinyint(1) NOT NULL DEFAULT '0',
   `created` date NOT NULL,
-  PRIMARY KEY (`id`)
+  `last_visit` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `entity_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `entity_id` (`entity_id`),
+  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+INSERT INTO `users` (`id`, `email`, `password`, `salt`, `routine_hash_code`, `routine_hash_code_expired`, `is_active`, `is_confirmed`, `is_password_recover_code_sended`, `created`, `last_visit`, `entity_id`) VALUES
+(22,	'stan.coder@gmail.com',	'have_to_change',	'have_to_change',	NULL,	'0000-00-00 00:00:00',	1,	0,	0,	'0000-00-00',	'0000-00-00 00:00:00',	8),
+(23,	'max@yandex.ru',	'have_to_change',	'have_to_change',	NULL,	'0000-00-00 00:00:00',	1,	0,	0,	'0000-00-00',	'0000-00-00 00:00:00',	9),
+(24,	'yeld@mail.ru',	'have_to_change',	'have_to_change',	NULL,	'0000-00-00 00:00:00',	1,	0,	0,	'0000-00-00',	'0000-00-00 00:00:00',	10);
 
 DROP TABLE IF EXISTS `users_sessions`;
 CREATE TABLE `users_sessions` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int(10) unsigned NOT NULL,
   `hash` char(128) NOT NULL,
-  `ip` varchar(15) NOT NULL,
-  `agent` varchar(100) NOT NULL,
-  `expire` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `session_name` char(100) NOT NULL,
-  `session_id` char(100) NOT NULL,
+  `expire` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
+  UNIQUE KEY `user_id` (`user_id`),
   CONSTRAINT `users_sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
--- 2015-09-29 12:00:55
+-- 2015-10-13 05:43:58
