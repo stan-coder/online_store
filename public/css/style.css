@@ -104,3 +104,5 @@ body{
     margin-left: 10px;
     font-size: 12px;
 }
+
+.nav>li>a:focus,.nav>li>a:hover{text-decoration:none;background-color:#ADFEFF;}

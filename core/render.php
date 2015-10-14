@@ -26,7 +26,7 @@ class Render
          * If established isAjax
          */
         if (controllerManager::$isAjax === true) {
-            if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || empty($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower((string)$_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest') {
+            if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || empty($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower((string)$_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest' || strtoupper($_SERVER['REQUEST_METHOD']) !== 'POST') {
                 if (Config::$debug === true) {
                     crash('This page may be rendered only within Ajax');
                 }

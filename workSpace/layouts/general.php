@@ -29,7 +29,7 @@
         </div>
     </div>
 </nav>
-<?php renderPartial('renderGeneralMenu');?>
+<?php /*renderPartial('renderGeneralMenu');*/?>
 <div class="container">
     <?php renderPartial('quickExplore');?>
     <?php eval("?>{$content}<?");?>

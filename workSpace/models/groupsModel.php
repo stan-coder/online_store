@@ -2,7 +2,7 @@
 
 class GroupsModel extends modelManager
 {
-    public function getInitialInfo($uid, $userEntityId) {
+    public function getInitialInfo($groupId, $userEntityId) {
         $sql = '
         select g.entity_id e_id, g.uid uid, g.description descr, g.created created, gu2.users_count users_count, ga2.admins_count admins_count,
           count(t2.pr_id) as entities_count from groups g
@@ -17,10 +17,10 @@ class GroupsModel extends modelManager
             where ie2.entity_id is null
           ) t2 on g.entity_id = t2.pr_id
         left join (select ga1.entity_group_id, count(ga1.entity_group_id) admins_count from groups_admins ga1 group by ga1.entity_group_id) ga2 on g.entity_id = ga2.entity_group_id
-        where `uid` = :uid
+        where g.entity_id = :groupId
         group by g.entity_id
         limit 1';
 
-        return $this->db()->selectOne($sql, [':uid' => $uid, ':userEntityId' => $userEntityId]);
+        return $this->db()->selectOne($sql, [':groupId' => $groupId, ':userEntityId' => $userEntityId]);
     }
 }
