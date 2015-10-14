@@ -1,6 +1,6 @@
 <?php function getRoute(){return array(
 '~^/book/(\d+)$~m'=>array('function'=>'book','controller'=>'books'),
-'~^/group/\d{14}$~m'=>array('js'=>array('0'=>'jquery-1.11.3.min.js','1'=>'groupTabs.js'),'function'=>'sheet','controller'=>'groups'),
+'~^/group/\d{14}$~m'=>array('js'=>array('0'=>'jquery-1.11.3.min.js','1'=>'groupTabs.js','2'=>'sha512.min.js'),'function'=>'sheet','controller'=>'groups'),
 '/groups/ajax/getInfo'=>array('ajax'=>true,'function'=>'getInfo','controller'=>'groups'),
 '/'=>array('title'=>'Online store of goods','function'=>'index','controller'=>'main'),
 '~^/catalog/(\d+)$~m'=>array('function'=>'catalog','controller'=>'main'),

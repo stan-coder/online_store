@@ -5,7 +5,7 @@ class groupsController extends controllerManager
     public static $url = [
         'sheet' => [
             'url' => '~^/group/\d{14}$~m',
-            'js' => ['jquery-1.11.3.min.js', 'groupTabs.js']
+            'js' => ['jquery-1.11.3.min.js', 'groupTabs.js', 'sha512.min.js']
         ],
         'getInfo' =>[
             'url' => '/groups/ajax/getInfo',
@@ -18,14 +18,14 @@ class groupsController extends controllerManager
      * Group sheet
      */
     public function sheet() {
-        /*$url = explode('/', implode($this->getMatchUrl()));
-        $group = $this->model('groups')->getInitialInfo(end($url), $this->session()->get('userEntityId'));
-        if (empty($group)) {
+        $url = explode('/', implode($this->getMatchUrl()));
+        if (!($group = $this->model('groups')->checkExistingGroup(end($url)))) {
             $this->setView('groupNotFound');
             return;
-        }*/
-        set('groupId', 1);
-        set('hash', 'OWIMDSDKJ');
+        }
+        set('groupId', $group['entity_id']);
+        set('hash', $hash = strtoupper(substr(hash('sha512', $this->model('customFunction')->getRandomString()), 0, 100)));
+        $this->session()->set('ajaxHash', $hash);
     }
 
     /**
@@ -35,8 +35,9 @@ class groupsController extends controllerManager
         $this->validAjaxData(['groupId', 'name'], function($t){
             return strlen($t->getData(1)) < 3 || !ctype_digit($t->getData(0));
         });
-        $group = $this->model('groups')->getInitialInfo($_POST['groupId'], $this->session()->get('userEntityId'));
-        print_r($group);
+        $groupInfo = $this->model('groups')->getInitialInfo($_POST['groupId'], $this->session()->get('userEntityId'));
+        $rt = !$groupInfo ? [0, 0, 'Group not found'] : [1, $groupInfo, 0];
+        $this->getJson($rt[0], $rt[1], $rt[2]);
     }
 
     /**
@@ -45,19 +46,27 @@ class groupsController extends controllerManager
      * @param $validate
      */
     private function validAjaxData($data, $validate) {
-        function get($message) {
-            exit(json_encode(['success', false, 'message' => $message]));
+        if (count($hs = array_keys(array_filter(array_flip($_POST), function($e){
+            return in_array($e, ['hash', 'salt']);
+        }))) !== 2 || substr(hash('sha512', $this->session()->get('ajaxHash') . $hs[1]), 0, 50) !== (string)$hs[0] ) {
+            $this->getJson(0, 0, 'Incorrect request');
         }
         if (!is_array($this->validData = $data) || !is_callable($validate)) {
-            get(Config::$debug ? 'The validating data contains incorrect value' : 'Unknown error');
+            $this->getJson(0, 0, Config::$debug ? 'The validating data contains incorrect value' : 'Unknown error');
         }
         if ((new ReflectionFunction($validate))->invoke($this)) {
-            get('Incorrect data');
+            $this->getJson(0, 0, 'Incorrect data');
         }
     }
 
-    protected function getJson($success, $data) {
-        echo json_encode(['success' => true, 'data' => $data]);
+    /**
+     * Return encoded json result
+     * @param $success
+     * @param $data
+     * @param null $message
+     */
+    protected function getJson($success, $data, $message = null) {
+        exit(json_encode(array_merge(['success' => (bool)$success], is_array($data) ? ['data' => $data] : [], is_string($message) ? ['message' => $message] : [])));
     }
 
     /**

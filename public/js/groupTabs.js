@@ -17,12 +17,24 @@ $(document).ready(function(){
                 //upId
             }
             var url = '/groups/ajax/get' + upId;
+            var hs = this.getSaltedHash();
             $.ajax({
                 url: url,
                 data: {
                     groupId: groupId,
                     name: 'Root',
-                    hash: hash
+                    hash: hs[0],
+                    salt: hs[1]
+                },
+                success: function(data){
+                    if (!data.success) {
+                        this.show('There is an error as a result of request');
+                        return;
+                    }
+                    console.log(this['showTab'+upId]);
+                },
+                error: function(){
+                    this.show('Sorry, but occurred unknown error');
                 }
             });
         };
@@ -48,11 +60,28 @@ $(document).ready(function(){
         };
 
         /**
+         * Get array contains salted hash and appropriate salt
+         * @returns {*[]}
+         */
+        this.getSaltedHash = function(){
+            var salt = (new Date()).getTime();
+            for (var h=0; h<10; h++) {
+                salt += Math.random().toString();
+            }
+            salt = sha512(salt).substr(0, 20);
+            return [sha512(hash + salt).substr(0, 50), salt];
+        };
+
+        /**
          * Show tab info about group
          * @param json
          */
-        this.showTabInfo = function(json){
-            console.log(json);
+        this.showTabInfo = function(data){
+            console.log(data);
+        };
+
+        this.showAlert = function(message){
+            alert(message);
         }
     };
 
