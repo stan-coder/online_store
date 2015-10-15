@@ -162,15 +162,20 @@ INSERT INTO `entities` (`id`, `parent_id`) VALUES
 (11,	2),
 (12,	2),
 (13,	2),
-(14,	2),
 (15,	2),
 (16,	2),
 (18,	2),
 (5,	4),
 (6,	5),
+(25,	13),
 (17,	15),
 (19,	18),
-(20,	18);
+(20,	18),
+(26,	25),
+(27,	26),
+(28,	27),
+(29,	27),
+(30,	28);
 
 DROP TABLE IF EXISTS `entities_sheet`;
 CREATE TABLE `entities_sheet` (
@@ -192,7 +197,12 @@ INSERT INTO `entities_sheet` (`entity_id`, `type_entity_id`, `created`) VALUES
 (11,	2,	'2015-10-10 08:09:12'),
 (12,	2,	'2015-10-10 08:12:34'),
 (13,	2,	'2015-10-10 08:37:21'),
-(14,	2,	'2015-10-10 08:39:52');
+(25,	2,	'2015-10-15 10:16:35'),
+(26,	2,	'2015-10-15 10:21:15'),
+(27,	2,	'2015-10-15 10:23:00'),
+(28,	2,	'2015-10-15 11:11:01'),
+(29,	2,	'2015-10-15 11:15:54'),
+(30,	2,	'2015-10-15 11:17:06');
 
 DROP TABLE IF EXISTS `general_catalog`;
 CREATE TABLE `general_catalog` (
@@ -232,15 +242,16 @@ DROP TABLE IF EXISTS `groups`;
 CREATE TABLE `groups` (
   `entity_id` int(11) NOT NULL,
   `uid` bigint(20) NOT NULL,
-  `description` varchar(200) NOT NULL,
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `title` varchar(200) NOT NULL,
+  `description` text NOT NULL,
+  `created` date NOT NULL,
   PRIMARY KEY (`entity_id`),
   CONSTRAINT `groups_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO `groups` (`entity_id`, `uid`, `description`, `created`) VALUES
-(1,	30937305030562,	'Группа про крылья',	'2015-10-10 02:12:28'),
-(4,	14630880189398,	'Группа про ртуть',	'2015-10-10 02:17:32');
+INSERT INTO `groups` (`entity_id`, `uid`, `title`, `description`, `created`) VALUES
+(1,	30937305030562,	'Группа про крылья',	'А это описание группы про крылья\r\nПривет, это вторая строка.',	'2015-10-11'),
+(4,	14630880189398,	'Группа про ртуть',	'Группа была создана, что бы описать все\r\nприемущества использования ртути.',	'2015-10-13');
 
 DROP TABLE IF EXISTS `groups_admins`;
 CREATE TABLE `groups_admins` (
@@ -421,7 +432,12 @@ INSERT INTO `owners_reposts` (`entity_repost_id`, `entity_owner_id`, `created`) 
 (11,	9,	'2015-10-10 08:11:24'),
 (12,	10,	'2015-10-10 08:13:38'),
 (13,	8,	'2015-10-10 08:38:05'),
-(14,	4,	'2015-10-10 08:40:57');
+(25,	1,	'2015-10-15 10:20:05'),
+(26,	10,	'2015-10-15 10:22:25'),
+(27,	1,	'2015-10-15 10:24:31'),
+(28,	9,	'2015-10-15 11:12:47'),
+(29,	8,	'2015-10-15 11:16:35'),
+(30,	1,	'2015-10-15 11:18:19');
 
 DROP TABLE IF EXISTS `products`;
 CREATE TABLE `products` (
@@ -516,18 +532,46 @@ INSERT INTO `reposts` (`entity_sheet_id`, `decription`, `created`) VALUES
 (11,	'Репост для (Первая публикация в группу про крылья) от пользователя id=9',	'2015-10-10 08:09:32'),
 (12,	'Репост для (Первая публикация в группу про крылья) от пользователя id=10',	'2015-10-10 08:13:19'),
 (13,	'Репост для (Первая публикация в группу про крылья) от пользователя id=8',	'2015-10-10 08:37:49'),
-(14,	'Репост для (Первая публикация в группу про крылья) от ГРУППЫ id=4',	'2015-10-10 08:40:19');
+(25,	'Репост для репоста (id = 13) в группу про крылья',	'2015-10-15 10:17:09'),
+(26,	'Репост для репоста (id = 25) на стену пользователя id = 10',	'2015-10-15 10:22:16'),
+(27,	'Репост для репоста (id = 26) в группу про крылья',	'2015-10-15 10:23:47'),
+(28,	'Репост для репоста (id = 27) на стеную пользователя id = 9 ',	'2015-10-15 11:11:51'),
+(29,	'Репост для репоста (id = 27) на стеную пользователя id = 8 ',	'2015-10-15 11:16:11'),
+(30,	'Репост для репоста (id = 28) в группу про крылья',	'2015-10-15 11:17:48');
 
 DROP TABLE IF EXISTS `reposts_parents_trees`;
 CREATE TABLE `reposts_parents_trees` (
   `entity_repost_id` int(11) NOT NULL,
-  `entity_repost_parent_id` int(11) NOT NULL,
+  `entity_parent_id` int(11) NOT NULL,
+  `entity_origin_sheet_id` int(11) NOT NULL,
   KEY `entity_repost_id` (`entity_repost_id`),
-  KEY `entity_repost_parent_id` (`entity_repost_parent_id`),
+  KEY `entity_parent_id` (`entity_parent_id`),
+  KEY `entity_origin_sheet_id` (`entity_origin_sheet_id`),
   CONSTRAINT `reposts_parents_trees_ibfk_1` FOREIGN KEY (`entity_repost_id`) REFERENCES `reposts` (`entity_sheet_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `reposts_parents_trees_ibfk_2` FOREIGN KEY (`entity_repost_parent_id`) REFERENCES `reposts` (`entity_sheet_id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `reposts_parents_trees_ibfk_2` FOREIGN KEY (`entity_parent_id`) REFERENCES `reposts` (`entity_sheet_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `reposts_parents_trees_ibfk_3` FOREIGN KEY (`entity_origin_sheet_id`) REFERENCES `entities_sheet` (`entity_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+INSERT INTO `reposts_parents_trees` (`entity_repost_id`, `entity_parent_id`, `entity_origin_sheet_id`) VALUES
+(25,	13,	2),
+(26,	25,	2),
+(26,	13,	2),
+(27,	26,	2),
+(27,	25,	2),
+(27,	13,	2),
+(28,	27,	2),
+(28,	26,	2),
+(28,	25,	2),
+(28,	13,	2),
+(29,	27,	2),
+(29,	26,	2),
+(29,	25,	2),
+(29,	13,	2),
+(30,	28,	2),
+(30,	27,	2),
+(30,	26,	2),
+(30,	25,	2),
+(30,	13,	2);
 
 DROP TABLE IF EXISTS `reviews_entities`;
 CREATE TABLE `reviews_entities` (
@@ -616,7 +660,7 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `users` (`id`, `email`, `password`, `salt`, `routine_hash_code`, `routine_hash_code_expired`, `is_active`, `is_confirmed`, `is_password_recover_code_sended`, `created`, `last_visit`, `entity_id`) VALUES
-(22,	'stan.coder@gmail.com',	'ebbc56aaa2880c8f812c83d3958f6e022ac8b3f41b6ce716e12b91d2515968c04b8bfd320ed9366e6c1e70d42c28724972e26d99e5fe6e4c71c639b9b778e488EB819710494F0632D418182CEA118B6115D05E927FFEB15F55',	'e1aa108d4a452f11efab5b7d6ed34a412d89a8191e6e11820d4500a2d08daea39469c3063bed257c6cfb50cc011d66d6034d2defca65b820473aec7fc7c48e7a',	NULL,	'0000-00-00 00:00:00',	1,	1,	0,	'0000-00-00',	'2015-10-13 09:09:01',	8),
+(22,	'stan.coder@gmail.com',	'ebbc56aaa2880c8f812c83d3958f6e022ac8b3f41b6ce716e12b91d2515968c04b8bfd320ed9366e6c1e70d42c28724972e26d99e5fe6e4c71c639b9b778e488EB819710494F0632D418182CEA118B6115D05E927FFEB15F55',	'e1aa108d4a452f11efab5b7d6ed34a412d89a8191e6e11820d4500a2d08daea39469c3063bed257c6cfb50cc011d66d6034d2defca65b820473aec7fc7c48e7a',	NULL,	'0000-00-00 00:00:00',	1,	1,	0,	'0000-00-00',	'2015-10-15 07:19:03',	8),
 (23,	'max@yandex.ru',	'have_to_change',	'have_to_change',	NULL,	'0000-00-00 00:00:00',	1,	0,	0,	'0000-00-00',	'0000-00-00 00:00:00',	9),
 (24,	'yeld@mail.ru',	'have_to_change',	'have_to_change',	NULL,	'0000-00-00 00:00:00',	1,	0,	0,	'0000-00-00',	'0000-00-00 00:00:00',	10),
 (26,	'stan.coddddder@gmail.com',	'ebbc56aaa2880c8f812c83d3958f6e022ac8b3f41b6ce716e12b91d2515968c04b8bfd320ed9366e6c1e70d42c28724972e26d99e5fe6e4c71c639b9b778e488EB819710494F0632D418182CEA118B6115D05E927FFEB15F55',	'e1aa108d4a452f11efab5b7d6ed34a412d89a8191e6e11820d4500a2d08daea39469c3063bed257c6cfb50cc011d66d6034d2defca65b820473aec7fc7c48e7a',	'a397cd0793c692af24aec8f937d47983e8bef13c5607cc32ac95790fc96786ed60bc9a21869a5afeb31b02a8ee053f470feda3c5ed675df4fd7eee8e21a7e560',	'2015-10-16 06:01:56',	1,	0,	0,	'2015-10-13',	'0000-00-00 00:00:00',	24);
@@ -633,6 +677,6 @@ CREATE TABLE `users_sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `users_sessions` (`id`, `user_id`, `hash`, `expire`) VALUES
-(41,	22,	'393d6578ec15e3b626d966fe5b6b417246ba309b2360b1430450028aee8195f35759b7850f9e533ebe25472ae7b5fdad467b4e4bf1b99e359640b7a434da5474',	'0000-00-00 00:00:00');
+(41,	22,	'1ed3e793a2bb9bfe1ad238397f20a5de5149edf9acaff271dcc82caca592943abe7a4f5ca093ca4be7e90914e352e26c7f8abfba4028823daa7a584abb6c4a97',	'0000-00-00 00:00:00');
 
--- 2015-10-13 09:26:08
+-- 2015-10-15 11:54:34

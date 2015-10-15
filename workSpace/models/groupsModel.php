@@ -25,7 +25,7 @@ class GroupsModel extends modelManager
     }
 
     public function checkExistingGroup($uid) {
-        $sql = 'select entity_id from groups where uid = ? limit 1';
+        $sql = 'select entity_id, title from groups where uid = ? limit 1';
         return $this->db()->selectOne($sql, [$uid]);
     }
 }

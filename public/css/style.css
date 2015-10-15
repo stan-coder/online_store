@@ -106,3 +106,7 @@ body{
 }
 
 .nav>li>a:focus,.nav>li>a:hover{text-decoration:none;background-color:#ADFEFF;}
+
+#groupTabs > li > a {
+    cursor: pointer;
+}

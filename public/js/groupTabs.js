@@ -6,16 +6,25 @@ $(document).ready(function(){
         var loadedTabs = [];
         var groupId = 0;
         var hash = null;
-        var tabSurface = $('#tabSurface');
+        var tabSurface = $('#surface');
 
         /**
-         * Swithing tabs
+         * Switching tabs
          * @param tabId
          */
         this.switchTabs = function(tabId){
+            if (tabsId.indexOf(tabId) === -1) {
+                this.showAlert('A tab has incorrect parameters');
+                return;
+            }
+            document.location.hash = tabId;
             var upId = tabId.substr(0, 1).toUpperCase() + tabId.substr(1);
-            if (loadedTabs.indexOf(tabId) !== -1) {
-                //upId
+            var tbs = $('div[id^=tab]').hide();
+            if (loadedTabs.indexOf(upId) !== -1) {
+                tbs.filter(function(){
+                    return $(this).get(0).id == 'tab'+upId;
+                }).show();
+                return;
             }
             var url = '/groups/ajax/get' + upId;
             var hs = this.getSaltedHash();
@@ -32,6 +41,7 @@ $(document).ready(function(){
                         this.show('There is an error as a result of request');
                         return;
                     }
+                    loadedTabs.push(upId);
                     this['showTab'+upId](data.data);
                 },
                 error: function(){
@@ -45,20 +55,27 @@ $(document).ready(function(){
          */
         this.init = function(){
             groupId = $('#groupId').val();
+            if (typeof groupId == 'undefined') return;
             hash = $('#hash').val();
-            $('#groupTabs > li').on('click', this, function(event){
+            var li = $('#groupTabs > li');
+            li.on('click', this, function(event){
                 if ($(this).hasClass('active') == false) {
                     $(this).siblings().removeClass('active');
                     $(this).addClass('active');
                     event.data.switchTabs($(this).get(0).id);
                 }
             });
-
             $.ajaxSetup({
                 type: 'POST',
                 dataType: 'json',
                 context: this
             });
+            var urlHash = document.location.hash;
+            if (urlHash.length > 0) {
+                var selLi = li.parent().children(urlHash);
+                if (selLi.size() !== 1 || tabsId.indexOf(urlHash.substr(1)) === -1) alert('You have proceeded via incorrect url.');
+                else selLi.trigger('click');
+            }
         };
 
         /**
@@ -76,7 +93,8 @@ $(document).ready(function(){
 
         /**
          * Show tab info about group
-         * @param json
+         * @param data
+         * @returns {*}
          */
         this.showTabInfo = function(data){
             var tab = {};
@@ -104,6 +122,21 @@ $(document).ready(function(){
             return data;
         };
 
+        /**
+         * Show tab that render all users belong to group
+         * @param data
+         */
+        this.showTabUsers = function(data){
+            var div = this.createTabDiv('Users');
+            div.innerHTML = 'Users list';
+            tabSurface.append(div);
+        };
+
+        /**
+         * Create parent div needed each tab
+         * @param id
+         * @returns {Element}
+         */
         this.createTabDiv = function(id){
             var div = document.createElement('div');
             div.id = 'tab'+id;

@@ -7,6 +7,10 @@ class groupsController extends controllerManager
             'url' => '~^/group/\d{14}$~m',
             'js' => ['jquery-1.11.3.min.js', 'groupTabs.js', 'sha512.min.js']
         ],
+        'getUsers' => [
+            'url' => '/groups/ajax/getUsers',
+            'ajax' => true
+        ],
         'getInfo' =>[
             'url' => '/groups/ajax/getInfo',
             'ajax' => true
@@ -19,12 +23,30 @@ class groupsController extends controllerManager
      */
     public function sheet() {
         $url = explode('/', implode($this->getMatchUrl()));
-        if (!($group = $this->model('groups')->checkExistingGroup(end($url)))) {
+        if (!($group = $this->model('groups')->checkExistingGroup($groupId = end($url)))) {
             $this->setView('groupNotFound');
             return;
         }
-        set('groupId', $group['entity_id']);
-        set('hash', $hash = strtoupper(substr(hash('sha512', $this->model('customFunction')->getRandomString()), 0, 100)));
+        if (($entities = $this->model('sheet')->getListEntities($group['entity_id'], $this->session()->get('userEntityId'))) === false) {
+            $this->setView('crushWhileLoadingGroup');
+            return;
+        }
+        $types = array_unique(array_column($entities, 'entity_type'));
+        $separated = array_map(function($el0) use($entities){
+            return array_filter($entities, function($el1) use($el0) {
+                return $el1['entity_type'] == $el0;
+            });
+        }, $types);
+        $combined = array_combine($types, $separated);
+        foreach ($types as $type) {
+            $lId = array_column($combined[$type], 'entity_id');
+            $qu = implode(',', array_fill(1, count($lId), '?'));
+            $data = $this->model('sheet')->getEntitiesListByType($type, $lId, $qu);
+        }
+
+        set(['groupId' => $group['entity_id'],
+            'hash' => $hash = strtoupper(substr(hash('sha512', $this->model('customFunction')->getRandomString()), 0, 100))]);
+        $this->setTitle($group['title']);
         $this->session()->set('ajaxHash', $hash);
     }
 
@@ -38,6 +60,13 @@ class groupsController extends controllerManager
         $groupInfo = $this->model('groups')->getInitialInfo($_POST['groupId'], $this->session()->get('userEntityId'));
         $rt = !$groupInfo ? [0, 0, 'Group not found'] : [1, $groupInfo, 0];
         $this->getJson($rt[0], $rt[1], $rt[2]);
+    }
+
+    /**
+     * Get list of users belongs to group
+     */
+    public function getUsers() {
+        $this->getJson(1, ['name', 'root']);
     }
 
     /**

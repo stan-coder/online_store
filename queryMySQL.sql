@@ -392,9 +392,11 @@ CREATE TABLE ignored_entities_by_users (
 
 CREATE TABLE reposts_parents_trees (
   entity_repost_id int(11) NOT NULL,
-  entity_repost_parent_id int(11) NOT NULL,
+  entity_parent_id int(11) NOT NULL,
+  entity_origin_sheet_id int(11) NOT NULL,
   FOREIGN KEY (entity_repost_id) REFERENCES reposts(entity_sheet_id) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (entity_repost_parent_id) REFERENCES reposts(entity_sheet_id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (entity_parent_id) REFERENCES reposts(entity_sheet_id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (entity_origin_sheet_id) REFERENCES entities_sheet(entity_id)  ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 
