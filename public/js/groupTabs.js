@@ -6,6 +6,7 @@ $(document).ready(function(){
         var loadedTabs = [];
         var groupId = 0;
         var hash = null;
+        var tabSurface = $('#tabSurface');
 
         /**
          * Swithing tabs
@@ -31,7 +32,7 @@ $(document).ready(function(){
                         this.show('There is an error as a result of request');
                         return;
                     }
-                    console.log(this['showTab'+upId]);
+                    this['showTab'+upId](data.data);
                 },
                 error: function(){
                     this.show('Sorry, but occurred unknown error');
@@ -55,7 +56,8 @@ $(document).ready(function(){
 
             $.ajaxSetup({
                 type: 'POST',
-                dataType: 'json'
+                dataType: 'json',
+                context: this
             });
         };
 
@@ -77,7 +79,35 @@ $(document).ready(function(){
          * @param json
          */
         this.showTabInfo = function(data){
-            console.log(data);
+            var tab = {};
+
+            tab.div = this.createTabDiv('Info');
+            tab.captions = ['Title', 'Description', 'Publications', 'Users', 'Admins', 'Created'];
+            tab.content = $.map(data, function(value) {
+                return [value];
+            });
+            tab.table = document.createElement('table');
+            tab.table.className = 'table table-bordered';
+            tab.table.appendChild(document.createElement('thead')).appendChild(document.createElement('tr')).parentNode.parentNode.appendChild(document.createElement('tbody')).appendChild(document.createElement('tr'));
+
+            var th = '';
+            var ta = [['th', 'thead'], ['td', 'tbody']];
+            for (var a=0; a<tab.captions.length; a++) {
+                for (var b=0; b<2; b++) {
+                    th = document.createElement(ta[b][0]);
+                    th.appendChild(document.createTextNode(tab[b==0?'captions':'content'][a]));
+                    tab.table.getElementsByTagName(ta[b][1])[0].childNodes[0].appendChild(th);
+                }
+            }
+            tab.div.appendChild(tab.table);
+            tabSurface.append(tab.div);
+            return data;
+        };
+
+        this.createTabDiv = function(id){
+            var div = document.createElement('div');
+            div.id = 'tab'+id;
+            return div;
         };
 
         this.showAlert = function(message){

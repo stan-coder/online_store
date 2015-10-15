@@ -4,7 +4,7 @@ class GroupsModel extends modelManager
 {
     public function getInitialInfo($groupId, $userEntityId) {
         $sql = '
-        select g.description descr, g.created created, gu2.users_count users_count, ga2.admins_count admins_count,
+        select g.title, g.description descr, g.created created, gu2.users_count users_count, ga2.admins_count admins_count,
           count(t2.pr_id) as entities_count from groups g
         left join (select gu1.entity_group_id, count(gu1.entity_user_id) as users_count from groups_users gu1 group by gu1.entity_group_id) gu2 on g.entity_id = gu2.entity_group_id
         left join (

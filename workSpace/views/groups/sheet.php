@@ -5,41 +5,32 @@
         <li role="presentation" id="users"><a href="#">Users</a></li>
         <li role="presentation" id="newUsers"><a href="#">New users</a></li>
     </ul>
-    <div style="width: 100%; height: 90%; border: 1px solid #ddd; border-top: none; padding: 30px 20px 30px 20px" id="tabContent">
-        <table class="table table-bordered">
-            <thead>
-            <tr>
-                <th>#</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Username</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <td rowspan="2">1</td>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@mdo</td>
-            </tr>
-            <tr>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@TwBootstrap</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>Jacob</td>
-                <td>Thornton</td>
-                <td>@fat</td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td colspan="2">Larry the Bird</td>
-                <td>@twitter</td>
-            </tr>
-            </tbody>
-        </table>
+    <div style="width: 100%; height: 90%; border: 1px solid #ddd; border-top: none; padding: 30px 20px 30px 20px" id="tabSurface">
+        <!--<div id="tabInfo">
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Publications</th>
+                    <th>Users</th>
+                    <th>Admins</th>
+                    <th>Created</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Группа про крылья</td>
+                    <td>А это описание группы про крылья<br/>
+                        Привет, это вторая строка.</td>
+                    <td>3</td>
+                    <td>2</td>
+                    <td>2</td>
+                    <td>2015-10-11</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>-->
     </div>
     <input type="hidden" id="groupId" value="{groupId}"/>
     <input type="hidden" id="hash" value="{hash}"/>

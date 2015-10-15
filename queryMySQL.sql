@@ -266,8 +266,9 @@ CREATE TABLE groups (
 
   entity_id int(11) NOT NULL,
   uid bigint(20) NOT NULL,
-  description varchar(200) NOT NULL,
-  created timestamp default CURRENT_TIMESTAMP,
+  title varchar(200) NOT NULL,
+  description text NOT NULL,
+  created date NOT NULL,
   PRIMARY KEY (entity_id),
   FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE ON UPDATE CASCADE
 
