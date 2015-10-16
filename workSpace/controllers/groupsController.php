@@ -16,7 +16,8 @@ class groupsController extends controllerManager
             'ajax' => true
         ]
     ];
-    private $validData = [0, 1];
+    private $validData = [0, 1],
+            $sheet = [];
 
     /**
      * Group sheet
@@ -41,13 +42,75 @@ class groupsController extends controllerManager
         foreach ($types as $type) {
             $lId = array_column($combined[$type], 'entity_id');
             $qu = implode(',', array_fill(1, count($lId), '?'));
-            $data = $this->model('sheet')->getEntitiesListByType($type, $lId, $qu);
+            if (!($data = $this->model('sheet')->getEntitiesListByType($type, $lId, $qu))) {exit('Here show error');}
+            $typeEntity = $this->model('sheet')->getEntitiesByIndex($type-1);
+            foreach ($lId as $enId) {
+                call_user_func_array([$this, 'prepare'.ucfirst($typeEntity)], [$enId, $data, $entities]);
+            }
         }
-
         set(['groupId' => $group['entity_id'],
             'hash' => $hash = strtoupper(substr(hash('sha512', $this->model('customFunction')->getRandomString()), 0, 100))]);
         $this->setTitle($group['title']);
         $this->session()->set('ajaxHash', $hash);
+    }
+
+    private function preparePublications($enId, $data, $entities) {
+        $this->sheet[$enId] = array_merge(array_filter($entities[$enId], function($el){
+            return !is_null($el);
+        }), ['content' => nl2br($data[$enId]['content'])]);
+    }
+
+    private function prepareReposts($enId, $data, $entities) {
+        if ($enId != 27) return;
+        $filtered =  array_filter($data, function($el) use($enId){
+            return $el['ent_sheet_id'] == $enId;
+        });
+        reset($filtered);
+        $fr = current($filtered);
+        $rp = [];
+        /**
+         * Nested repost
+         */
+        if (is_numeric($fr['en_sheet_id_sub_rp'])) {
+            $rp[] = [
+                'description' => $fr['descr'],
+                'entity_post_id' => $fr['ent_sheet_id'],
+                'created' => $fr['created']];
+            foreach ($filtered as $subRePost) {
+                $tm = array_filter($subRePost, function($el) {
+                    return !is_null($el);
+                });
+                array_walk($tm, function(&$el, $index){
+                    $el = (in_array($index, ['ent_sheet_id', 'descr', 'created']) ? false : $el);
+                });
+                $rp[] = array_filter($tm);
+            }
+            /**
+             * Retrieve original parent entity_id
+             */
+            $origEnt = array_filter($rp, function($el){
+                return isset($el['original_parent_en_id']);
+            });
+            $origEnt = array_shift($origEnt);
+            $t = $this->model('sheet')->getEntitiesListByType($origEnt['type_en_id'], [$origEnt['original_parent_en_id']], '?');
+
+            echo '<pre>';
+            print_r($t);
+            echo '</pre>';
+
+            // $origEnt['original_parent_en_id']
+            // $origEnt['type_en_id']
+
+            echo '<pre>';
+            print_r($rp);
+            exit;
+        }
+        /**
+         * Simple repost
+         */
+        else {
+
+        }
     }
 
     /**

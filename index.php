@@ -9,6 +9,8 @@
 // потому что если больше 100, то будет выдавать ошибку, поэтому надо обрезать, если больше
 ini_set('display_errors', true);
 
+// !!!! НЕ ЗАБУДЬ УБРАТЬ order by В МОДЕЛЕ sheet.
+
 define('DS', DIRECTORY_SEPARATOR);
 define('DIR', dirname(__FILE__).DS); // var/www/english/
 define('CORE', dirname(__FILE__).DS.'core'.DS); // var/www/english/core/

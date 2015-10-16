@@ -41,7 +41,7 @@ create table users (
   is_confirmed tinyint(1) not null default 0,
   is_password_recover_code_sended tinyint(1) not null default 0,
   created date not null,
-  last_visit timestamp default 0,
+  last_visit timestamp default 0
 ) CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE=INNODB;
 
 create table attempts (
@@ -310,7 +310,7 @@ CREATE TABLE publications (
 CREATE TABLE reposts (
 
   entity_sheet_id int(11) NOT NULL,
-  decription text NOT NULL,
+  description text NOT NULL,
   created timestamp default CURRENT_TIMESTAMP,
   PRIMARY KEY (entity_sheet_id),
   FOREIGN KEY (entity_sheet_id) REFERENCES entities_sheet(entity_id) ON DELETE CASCADE ON UPDATE CASCADE
@@ -331,6 +331,8 @@ CREATE TABLE users (
 
   entity_id int(11) NOT NULL,
   email varchar(50) NOT NULL,
+  first_name varchar(15),
+  surname varchar(15),
   PRIMARY KEY (entity_id),
   FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE ON UPDATE CASCADE
 
