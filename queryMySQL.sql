@@ -436,6 +436,11 @@ CREATE TABLE groups_admins (
   FOREIGN KEY (entity_user_id) REFERENCES users(entity_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
+create view `packed_general_entities` as
+(select u.entity_id, u.uid, concat(first_name, '|', surname) as info, 2 as e_type from users u having info is not null)
+union all
+(select g.entity_id, g.uid, g.title info, 1 as e_type from groups g);
+
 
 select t1.e_id entity_id, t1.e_type entity_type, t1.created created, l2.likes_count likes_count, notown.entity_user_id not_owner_entity_user_id, e2.reposts_count reposts_count,
   re2.reviews_count reviews_count, e5.comments_count comments_count, e5.total_comments_count total_comments_count

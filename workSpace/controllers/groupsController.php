@@ -61,7 +61,6 @@ class groupsController extends controllerManager
     }
 
     private function prepareReposts($enId, $data, $entities) {
-        if ($enId != 27) return;
         $filtered =  array_filter($data, function($el) use($enId){
             return $el['ent_sheet_id'] == $enId;
         });
@@ -69,7 +68,7 @@ class groupsController extends controllerManager
         $fr = current($filtered);
         $rp = [];
         /**
-         * Nested repost
+         * Nested rePost
          */
         if (is_numeric($fr['en_sheet_id_sub_rp'])) {
             $rp[] = [
@@ -88,25 +87,30 @@ class groupsController extends controllerManager
             /**
              * Retrieve original parent entity_id
              */
-            $origEnt = array_filter($rp, function($el){
+            $preOrigEnt = array_filter($rp, function($el){
                 return isset($el['original_parent_en_id']);
             });
-            $origEnt = array_shift($origEnt);
-            $t = $this->model('sheet')->getEntitiesListByType($origEnt['type_en_id'], [$origEnt['original_parent_en_id']], '?');
+            $preOrigEnt = array_shift($preOrigEnt);
+            if (!($origEnt = $this->model('sheet')->getEntitiesListByType($preOrigEnt['original_entity_sheet_type'], [$preOrigEnt['original_parent_en_id']], '?'))) {
+                exit('Here show error');
+            }
+            $origEnt = end($origEnt);
 
-            echo '<pre>';
-            print_r($t);
-            echo '</pre>';
-
-            // $origEnt['original_parent_en_id']
-            // $origEnt['type_en_id']
-
-            echo '<pre>';
-            print_r($rp);
-            exit;
+            $de = ['original_entity_sheet_type', 'source_entity_id', 'source_uid', 'source_info', 'original_parent_en_id'];
+            array_walk($rp, function(&$el) use($de, &$origEnt){
+                if (isset($el[$de[0]])) {
+                    foreach ($de as $e) {
+                        $origEnt[$e] = $el[$e];
+                        unset($el[$e]);
+                    }
+                }
+            });
+            array_pop($origEnt);
+            array_push($rp, $origEnt);
+            $this->sheet[] = $rp;
         }
         /**
-         * Simple repost
+         * Simple rePost
          */
         else {
 

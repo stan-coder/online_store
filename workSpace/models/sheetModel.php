@@ -63,26 +63,35 @@ class SheetModel extends modelManager
           r2.description descr_sub_rp,
           owr.entity_owner_id en_owner_id_sub_rp,
           owr1.entity_owner_id en_owner_id_single_rp,
+          t3.uid owner_uid,
+          t3.info owner_info,
+          t3.e_type owner_type,
           t1.parent_id parent_id_single_rp,
           t1.type_entity_id type_en_id_single_rp,
-          e4.parent_id original_parent_en_id,
-          esh1.type_entity_id type_en_id
+          e4.parent_id original_parent_en_id, -- first publication or other entity
+          esh1.type_entity_id original_entity_sheet_type, --  from entities_sheet.type_entity_id
+          t4.entity_id source_entity_id,
+          t4.uid source_uid,
+          t4.info source_info
         from reposts r1
-        left join reposts_parents_trees rpt1 on r1.entity_sheet_id = rpt1.entity_repost_id
-        left join reposts r2 on rpt1.entity_parent_id = r2.entity_sheet_id
-        left join owners_reposts owr on owr.entity_repost_id = r2.entity_sheet_id
-        left join
-          (select e2.id id, e2.parent_id parent_id, esh.type_entity_id from entities e2 left join entities_sheet esh on e2.parent_id = esh.entity_id) t1 on
-            t1.id = r1.entity_sheet_id and rpt1.entity_repost_id is null
-        left join owners_reposts owr1 on t1.id = owr1.entity_repost_id
-        left join
-          (select rpt3.entity_repost_id, min(rpt3.entity_parent_id) min_parent from reposts_parents_trees rpt3 group by rpt3.entity_repost_id) t2 on
-            rpt1.entity_parent_id = t2.min_parent and r1.entity_sheet_id = t2.entity_repost_id
-        left join entities e4 on t2.min_parent = e4.id
-        left join entities_sheet esh1 on e4.parent_id = esh1.entity_id
+          left join reposts_parents_trees rpt1 on r1.entity_sheet_id = rpt1.entity_repost_id
+          left join reposts r2 on rpt1.entity_parent_id = r2.entity_sheet_id
+          left join owners_reposts owr on owr.entity_repost_id = r2.entity_sheet_id
+          left join
+            (select e2.id id, e2.parent_id parent_id, esh.type_entity_id from entities e2 left join entities_sheet esh on e2.parent_id = esh.entity_id) t1 on
+              t1.id = r1.entity_sheet_id and rpt1.entity_repost_id is null
+          left join owners_reposts owr1 on t1.id = owr1.entity_repost_id
+          left join packed_general_entities t3 on owr.entity_owner_id = t3.entity_id or owr1.entity_owner_id = t3.entity_id
+          left join
+            (select rpt3.entity_repost_id, min(rpt3.entity_parent_id) min_parent from reposts_parents_trees rpt3 group by rpt3.entity_repost_id) t2 on
+              rpt1.entity_parent_id = t2.min_parent and r1.entity_sheet_id = t2.entity_repost_id
+          left join entities e4 on t2.min_parent = e4.id
+          left join entities e5 on e4.parent_id = e5.id or t1.parent_id = e5.id
+          left join packed_general_entities t4 on t4.entity_id = e5.parent_id
+          left join entities_sheet esh1 on e4.parent_id = esh1.entity_id
         where r1.entity_sheet_id in ({$qu})
         order by r1.created asc";
-        return $this->db()->select($sql, $listId);
+        return $this->db()->select($sql, $listId); // {$qu}
     }
 
     public function getEntitiesByIndex($index) {
