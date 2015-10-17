@@ -48,33 +48,54 @@ class groupsController extends controllerManager
                 call_user_func_array([$this, 'prepare'.ucfirst($typeEntity)], [$enId, $data, $entities]);
             }
         }
+        ksort($this->sheet);
+        $this->sheet = array_values($this->sheet);
         set(['groupId' => $group['entity_id'],
             'hash' => $hash = strtoupper(substr(hash('sha512', $this->model('customFunction')->getRandomString()), 0, 100))]);
         $this->setTitle($group['title']);
         $this->session()->set('ajaxHash', $hash);
     }
 
+    /**
+     * Prepare publications to render on sheet
+     * @param $enId
+     * @param $data
+     * @param $entities
+     */
     private function preparePublications($enId, $data, $entities) {
-        $this->sheet[$enId] = array_merge(array_filter($entities[$enId], function($el){
+        $tm = array_merge(array_filter($entities[$enId], function($el){
             return !is_null($el);
         }), ['content' => nl2br($data[$enId]['content'])]);
+        $this->sheet[$tm['created']] = $tm;
     }
 
+    /**
+     * Prepare rePosts to render on sheet
+     * @param $enId
+     * @param $data
+     * @param $entities
+     */
     private function prepareReposts($enId, $data, $entities) {
+        foreach($entities[$enId] as $key => $el) {
+            if (in_array($key, ['entity_id', 'entity_type', 'created'])) {
+                $entities[$enId][$key] = null;
+            }
+        }
+        $extraInfo = array_filter($entities[$enId]);
         $filtered =  array_filter($data, function($el) use($enId){
             return $el['ent_sheet_id'] == $enId;
         });
         reset($filtered);
         $fr = current($filtered);
         $rp = [];
+        $rp[] = [
+            'description' => $fr['descr'],
+            'entity_post_id' => $fr['ent_sheet_id'],
+            'created' => $fr['created']];
         /**
          * Nested rePost
          */
         if (is_numeric($fr['en_sheet_id_sub_rp'])) {
-            $rp[] = [
-                'description' => $fr['descr'],
-                'entity_post_id' => $fr['ent_sheet_id'],
-                'created' => $fr['created']];
             foreach ($filtered as $subRePost) {
                 $tm = array_filter($subRePost, function($el) {
                     return !is_null($el);
@@ -107,13 +128,24 @@ class groupsController extends controllerManager
             });
             array_pop($origEnt);
             array_push($rp, $origEnt);
-            $this->sheet[] = $rp;
+            $rp[$mn = min(array_keys($rp))] = array_merge($rp[$mn], $extraInfo);
+            $this->sheet[$fr['created']] = $rp;
         }
         /**
          * Simple rePost
          */
         else {
-
+            $fr = array_filter($fr);
+            if (!($origEnt = $this->model('sheet')->getEntitiesListByType($fr['original_entity_sheet_type_single'], [$fr['original_parent_en_id_single']], '?'))) {
+                exit('Here show error');
+            }
+            $origEnt = end($origEnt);
+            $de = ['source_info', 'source_uid', 'source_entity_id', 'original_entity_sheet_type_single', 'original_parent_en_id_single'];
+            foreach ($de as $el) {
+                $origEnt[$el] = $fr[$el];
+                unset($fr[$el]);
+            }
+            $this->sheet[$fr['created']] = [current($rp), $origEnt];
         }
     }
 

@@ -1,4 +1,4 @@
--- Adminer 4.2.2 MySQL dump
+-- Adminer 4.2.1 MySQL dump
 
 SET NAMES utf8;
 SET time_zone = '+00:00';
@@ -336,9 +336,13 @@ CREATE TABLE `likes` (
 INSERT INTO `likes` (`entity_id`, `entity_id_user`) VALUES
 (2,	8),
 (6,	8),
+(25,	8),
 (2,	9),
 (6,	9),
-(6,	10);
+(27,	9),
+(6,	10),
+(7,	10),
+(25,	10);
 
 DROP TABLE IF EXISTS `marks`;
 CREATE TABLE `marks` (
@@ -445,6 +449,10 @@ INSERT INTO `owners_reposts` (`entity_repost_id`, `entity_owner_id`, `created`) 
 (31,	10,	'2015-10-16 04:29:18'),
 (32,	1,	'2015-10-16 04:34:24');
 
+DROP VIEW IF EXISTS `packed_general_entities`;
+CREATE TABLE `packed_general_entities` (`entity_id` int(11), `uid` bigint(20), `info` varchar(200), `e_type` bigint(20));
+
+
 DROP TABLE IF EXISTS `products`;
 CREATE TABLE `products` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -534,7 +542,7 @@ CREATE TABLE `reposts` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `reposts` (`entity_sheet_id`, `description`, `created`) VALUES
-(6,	'Репост для (первая публикация в группу про ртуть) группы про крылья',	'2015-10-10 02:46:48'),
+(6,	'Репост для (первая публикация в группу про ртуть) в группу про крылья',	'2015-10-10 02:46:48'),
 (11,	'Репост для (Первая публикация в группу про крылья) от пользователя id=9',	'2015-10-10 08:09:32'),
 (12,	'Репост для (Первая публикация в группу про крылья) от пользователя id=10',	'2015-10-10 08:13:19'),
 (13,	'Репост для (Первая публикация в группу про крылья) от пользователя id=8',	'2015-10-10 08:37:49'),
@@ -627,6 +635,32 @@ INSERT INTO `sub_comments_total_count` (`entity_parent_comment_id`, `children_co
 (15,	1),
 (18,	2);
 
+DROP TABLE IF EXISTS `tm_owners_entities`;
+CREATE TABLE `tm_owners_entities` (
+  `entity_id` int(11) NOT NULL,
+  `entity_type_owner_id` int(11) NOT NULL,
+  KEY `entity_id` (`entity_id`),
+  KEY `entity_type_owner_id` (`entity_type_owner_id`),
+  CONSTRAINT `tm_owners_entities_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `tm_owners_entities_ibfk_2` FOREIGN KEY (`entity_type_owner_id`) REFERENCES `tm_type_owners` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `tm_owners_entities` (`entity_id`, `entity_type_owner_id`) VALUES
+(1,	2),
+(9,	1),
+(10,	1);
+
+DROP TABLE IF EXISTS `tm_type_owners`;
+CREATE TABLE `tm_type_owners` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(20) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `tm_type_owners` (`id`, `title`) VALUES
+(1,	'Users'),
+(2,	'Groups');
+
 DROP TABLE IF EXISTS `type_entities`;
 CREATE TABLE `type_entities` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -672,10 +706,10 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `users` (`id`, `email`, `password`, `salt`, `routine_hash_code`, `routine_hash_code_expired`, `is_active`, `is_confirmed`, `is_password_recover_code_sended`, `created`, `last_visit`, `entity_id`, `first_name`, `surname`, `uid`) VALUES
-(22,	'stan.coder@gmail.com',	'ebbc56aaa2880c8f812c83d3958f6e022ac8b3f41b6ce716e12b91d2515968c04b8bfd320ed9366e6c1e70d42c28724972e26d99e5fe6e4c71c639b9b778e488EB819710494F0632D418182CEA118B6115D05E927FFEB15F55',	'e1aa108d4a452f11efab5b7d6ed34a412d89a8191e6e11820d4500a2d08daea39469c3063bed257c6cfb50cc011d66d6034d2defca65b820473aec7fc7c48e7a',	NULL,	'0000-00-00 00:00:00',	1,	1,	0,	'0000-00-00',	'2015-10-16 07:07:42',	8,	'Stanislav',	'Zavalishin',	81063635591952),
+(22,	'stan.coder@gmail.com',	'ebbc56aaa2880c8f812c83d3958f6e022ac8b3f41b6ce716e12b91d2515968c04b8bfd320ed9366e6c1e70d42c28724972e26d99e5fe6e4c71c639b9b778e488EB819710494F0632D418182CEA118B6115D05E927FFEB15F55',	'e1aa108d4a452f11efab5b7d6ed34a412d89a8191e6e11820d4500a2d08daea39469c3063bed257c6cfb50cc011d66d6034d2defca65b820473aec7fc7c48e7a',	NULL,	'0000-00-00 00:00:00',	1,	1,	0,	'0000-00-00',	'2015-10-17 14:40:56',	8,	'Stanislav',	'Zavalishin',	81063635591952),
 (23,	'max@yandex.ru',	'have_to_change',	'have_to_change',	NULL,	'0000-00-00 00:00:00',	1,	0,	0,	'0000-00-00',	'0000-00-00 00:00:00',	9,	'Max',	'Zimovsky',	62081692541920),
-(24,	'yeld@mail.ru',	'have_to_change',	'have_to_change',	NULL,	'0000-00-00 00:00:00',	1,	0,	0,	'0000-00-00',	'0000-00-00 00:00:00',	10,	NULL,	NULL,	NULL),
-(26,	'stan.coddddder@gmail.com',	'ebbc56aaa2880c8f812c83d3958f6e022ac8b3f41b6ce716e12b91d2515968c04b8bfd320ed9366e6c1e70d42c28724972e26d99e5fe6e4c71c639b9b778e488EB819710494F0632D418182CEA118B6115D05E927FFEB15F55',	'e1aa108d4a452f11efab5b7d6ed34a412d89a8191e6e11820d4500a2d08daea39469c3063bed257c6cfb50cc011d66d6034d2defca65b820473aec7fc7c48e7a',	'a397cd0793c692af24aec8f937d47983e8bef13c5607cc32ac95790fc96786ed60bc9a21869a5afeb31b02a8ee053f470feda3c5ed675df4fd7eee8e21a7e560',	'2015-10-16 06:01:56',	1,	0,	0,	'2015-10-13',	'0000-00-00 00:00:00',	24,	NULL,	NULL,	NULL);
+(24,	'yeld@mail.ru',	'have_to_change',	'have_to_change',	NULL,	'0000-00-00 00:00:00',	1,	0,	0,	'0000-00-00',	'0000-00-00 00:00:00',	10,	'Galina',	'Xenova',	74025386215244),
+(26,	'stan.coddddder@gmail.com',	'ebbc56aaa2880c8f812c83d3958f6e022ac8b3f41b6ce716e12b91d2515968c04b8bfd320ed9366e6c1e70d42c28724972e26d99e5fe6e4c71c639b9b778e488EB819710494F0632D418182CEA118B6115D05E927FFEB15F55',	'e1aa108d4a452f11efab5b7d6ed34a412d89a8191e6e11820d4500a2d08daea39469c3063bed257c6cfb50cc011d66d6034d2defca65b820473aec7fc7c48e7a',	'a397cd0793c692af24aec8f937d47983e8bef13c5607cc32ac95790fc96786ed60bc9a21869a5afeb31b02a8ee053f470feda3c5ed675df4fd7eee8e21a7e560',	'2015-10-16 06:01:56',	1,	0,	0,	'2015-10-13',	'0000-00-00 00:00:00',	24,	'Astor',	'Poper',	96826410683275);
 
 DROP TABLE IF EXISTS `users_sessions`;
 CREATE TABLE `users_sessions` (
@@ -689,6 +723,9 @@ CREATE TABLE `users_sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `users_sessions` (`id`, `user_id`, `hash`, `expire`) VALUES
-(41,	22,	'a2b27ac12afa8776f7227e7a7689c89ec808a32bb5da992a7ff2b3109fb5f8dbecf6479866c544bebfcf764085606e25eee7f335062fae3697939f32973f4ad8',	'0000-00-00 00:00:00');
+(41,	22,	'05ca836631c0ae4273f345b48be7aca7f00dfb558265b3aee40efc411e15d0fb9719f7722b71d7146250f14564268c4870ad95ea9b89d67247d9a05194a4883b',	'0000-00-00 00:00:00');
 
--- 2015-10-16 12:15:48
+DROP TABLE IF EXISTS `packed_general_entities`;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `packed_general_entities` AS (select `u`.`entity_id` AS `entity_id`,`u`.`uid` AS `uid`,concat(`u`.`first_name`,'|',`u`.`surname`) AS `info`,2 AS `e_type` from `users` `u` having (`info` is not null)) union all (select `g`.`entity_id` AS `entity_id`,`g`.`uid` AS `uid`,`g`.`title` AS `info`,1 AS `e_type` from `groups` `g`);
+
+-- 2015-10-17 17:03:20
