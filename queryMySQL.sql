@@ -364,6 +364,7 @@ CREATE TABLE not_viewed_new_comments_by_users (
 
   entity_user_id int(11) NOT NULL,
   entity_comment_id int(11) NOT NULL,
+  UNIQUE(entity_user_id, entity_comment_id),
   FOREIGN KEY (entity_user_id) REFERENCES users(entity_id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (entity_comment_id) REFERENCES comments(entity_id) ON DELETE CASCADE ON UPDATE CASCADE
 
@@ -407,6 +408,7 @@ CREATE TABLE comments (
   entity_id int(11) NOT NULL,
   entity_user_id int(11) NOT NULL,
   content text NOT NULL,
+  created timestamp default CURRENT_TIMESTAMP,
   UNIQUE (entity_id, entity_user_id),
   FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (entity_user_id) REFERENCES users(entity_id) ON DELETE CASCADE ON UPDATE CASCADE

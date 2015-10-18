@@ -17,7 +17,8 @@ class groupsController extends controllerManager
         ]
     ];
     private $validData = [0, 1],
-            $sheet = [];
+            $sheet = [],
+            $comments = [];
 
     /**
      * Group sheet
@@ -39,8 +40,25 @@ class groupsController extends controllerManager
             });
         }, $types);
         $combined = array_combine($types, $separated);
-        foreach ($types as $type) {
-            $lId = array_column($combined[$type], 'entity_id');
+        $allEntId = array_map(function($el) use($combined){
+            return array_column($combined[$el], 'entity_id');
+        }, $types);
+        $li = [];
+        array_walk_recursive($allEntId, function($el) use(&$li){
+            $li[] = $el;
+        });
+        $plH = [];
+        $plS = '';
+        foreach ($li as $key => $l) {
+            $plH[':e'.$key] = $l;
+            $plS .= ':e'.$key.',';
+        }
+        $plH['enUserId'] = $this->session()->get('userEntityId');
+        if (is_array($comments = $this->model('sheet')->getCommentsByEntitiesList(substr($plS, 0, -1), $plH)) && count($comments) > 0) {
+            $this->prepareComments($comments);
+        }
+        foreach ($types as $key => $type) {
+            $lId = $allEntId[$key];
             $qu = implode(',', array_fill(1, count($lId), '?'));
             if (!($data = $this->model('sheet')->getEntitiesListByType($type, $lId, $qu))) {exit('Here show error');}
             $typeEntity = $this->model('sheet')->getEntitiesByIndex($type-1);
@@ -54,6 +72,15 @@ class groupsController extends controllerManager
             'hash' => $hash = strtoupper(substr(hash('sha512', $this->model('customFunction')->getRandomString()), 0, 100))]);
         $this->setTitle($group['title']);
         $this->session()->set('ajaxHash', $hash);
+    }
+
+    /**
+     * Prepare comments to array representation to include in rendered entity
+     * @param $comArray
+     */
+    private function prepareComments($comArray) {
+        // array_unique(array_column($comArray, 'parent_id'))
+        $this->comments = [];
     }
 
     /**
@@ -116,7 +143,6 @@ class groupsController extends controllerManager
                 exit('Here show error');
             }
             $origEnt = end($origEnt);
-
             $de = ['original_entity_sheet_type', 'source_entity_id', 'source_uid', 'source_info', 'original_parent_en_id'];
             array_walk($rp, function(&$el) use($de, &$origEnt){
                 if (isset($el[$de[0]])) {

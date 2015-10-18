@@ -126,19 +126,25 @@ CREATE TABLE `comments` (
   `entity_id` int(11) NOT NULL,
   `entity_user_id` int(11) NOT NULL,
   `content` text NOT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY `entity_id` (`entity_id`,`entity_user_id`),
   KEY `entity_user_id` (`entity_user_id`),
   CONSTRAINT `comments_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `comments_ibfk_2` FOREIGN KEY (`entity_user_id`) REFERENCES `users` (`entity_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO `comments` (`entity_id`, `entity_user_id`, `content`) VALUES
-(15,	8,	'Первый комментарий для (Первая публикация в группу про крылья id=2)'),
-(16,	9,	'Второй комментарий для (Первая публикация в группу про крылья id=2)'),
-(17,	10,	'Первый Ответ для первого комментария (id=15)'),
-(18,	10,	'Третий комментарий для (Первая публикация в группу про крылья id=2)'),
-(19,	9,	'Первый Ответ для третьего комментария (id=18)'),
-(20,	8,	'Второй Ответ для третьего комментария (id=18)');
+INSERT INTO `comments` (`entity_id`, `entity_user_id`, `content`, `created`) VALUES
+(15,	8,	'Первый комментарий для (Первая публикация в группу про крылья id=2)',	'2015-10-17 14:15:28'),
+(16,	9,	'Второй комментарий для (Первая публикация в группу про крылья id=2)',	'2015-10-17 16:10:43'),
+(17,	10,	'Первый Ответ для первого комментария (id=15)',	'0000-00-00 00:00:00'),
+(18,	10,	'Третий комментарий для (Первая публикация в группу про крылья id=2)',	'2015-10-18 04:07:01'),
+(19,	9,	'Первый Ответ для третьего комментария (id=18)',	'0000-00-00 00:00:00'),
+(20,	8,	'Второй Ответ для третьего комментария (id=18)',	'0000-00-00 00:00:00'),
+(33,	9,	'Последний комментарий для (Первая публикация в группу про крылья id=2), который будет скрыт',	'2015-10-18 11:04:20'),
+(34,	10,	'Самый, самый последний коммент для публикации с id = 2',	'2015-10-18 11:17:52'),
+(35,	8,	'Первый комментарий для сущности id = 7',	'2015-10-18 14:09:21'),
+(36,	10,	'Второй комментарий для сущности id = 7',	'2015-10-18 14:11:09'),
+(37,	9,	'Первый комментарий для сущности id = 30',	'2015-10-18 14:12:21');
 
 DROP TABLE IF EXISTS `entities`;
 CREATE TABLE `entities` (
@@ -165,9 +171,13 @@ INSERT INTO `entities` (`id`, `parent_id`) VALUES
 (15,	2),
 (16,	2),
 (18,	2),
+(33,	2),
+(34,	2),
 (5,	4),
 (6,	5),
 (31,	5),
+(35,	7),
+(36,	7),
 (25,	13),
 (17,	15),
 (19,	18),
@@ -177,6 +187,7 @@ INSERT INTO `entities` (`id`, `parent_id`) VALUES
 (28,	27),
 (29,	27),
 (30,	28),
+(37,	30),
 (32,	31);
 
 DROP TABLE IF EXISTS `entities_sheet`;
@@ -300,6 +311,7 @@ CREATE TABLE `ignored_entities_by_users` (
 
 INSERT INTO `ignored_entities_by_users` (`entity_user_id`, `entity_id`) VALUES
 (8,	3),
+(8,	33),
 (9,	7);
 
 DROP TABLE IF EXISTS `languages_books`;
@@ -336,12 +348,15 @@ CREATE TABLE `likes` (
 INSERT INTO `likes` (`entity_id`, `entity_id_user`) VALUES
 (2,	8),
 (6,	8),
+(18,	8),
 (25,	8),
 (2,	9),
 (6,	9),
+(15,	9),
 (27,	9),
 (6,	10),
 (7,	10),
+(15,	10),
 (25,	10);
 
 DROP TABLE IF EXISTS `marks`;
@@ -401,6 +416,11 @@ CREATE TABLE `not_viewed_new_comments_by_users` (
   CONSTRAINT `not_viewed_new_comments_by_users_ibfk_2` FOREIGN KEY (`entity_comment_id`) REFERENCES `comments` (`entity_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+INSERT INTO `not_viewed_new_comments_by_users` (`entity_user_id`, `entity_comment_id`) VALUES
+(8,	16),
+(10,	18),
+(8,	34),
+(8,	33);
 
 DROP TABLE IF EXISTS `orders_goods`;
 CREATE TABLE `orders_goods` (
@@ -693,6 +713,42 @@ CREATE TABLE `users` (
   `routine_hash_code_expired` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
   `is_confirmed` tinyint(1) NOT NULL DEFAULT '0',
+  `is_password_recover_code_sended` tinyint(1) NOT NULL DEFAULT '0',
+  `created` date NOT NULL,
+  `last_visit` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `entity_id` int(11) NOT NULL,
+  `first_name` varchar(15) DEFAULT NULL,
+  `surname` varchar(15) DEFAULT NULL,
+  `uid` bigint(14) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `entity_id` (`entity_id`),
+  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `users` (`id`, `email`, `password`, `salt`, `routine_hash_code`, `routine_hash_code_expired`, `is_active`, `is_confirmed`, `is_password_recover_code_sended`, `created`, `last_visit`, `entity_id`, `first_name`, `surname`, `uid`) VALUES
+(22,	'stan.coder@gmail.com',	'ebbc56aaa2880c8f812c83d3958f6e022ac8b3f41b6ce716e12b91d2515968c04b8bfd320ed9366e6c1e70d42c28724972e26d99e5fe6e4c71c639b9b778e488EB819710494F0632D418182CEA118B6115D05E927FFEB15F55',	'e1aa108d4a452f11efab5b7d6ed34a412d89a8191e6e11820d4500a2d08daea39469c3063bed257c6cfb50cc011d66d6034d2defca65b820473aec7fc7c48e7a',	NULL,	'0000-00-00 00:00:00',	1,	1,	0,	'0000-00-00',	'2015-10-18 12:53:19',	8,	'Stanislav',	'Zavalishin',	81063635591952),
+(23,	'max@yandex.ru',	'have_to_change',	'have_to_change',	NULL,	'0000-00-00 00:00:00',	1,	0,	0,	'0000-00-00',	'0000-00-00 00:00:00',	9,	'Max',	'Zimovsky',	62081692541920),
+(24,	'yeld@mail.ru',	'have_to_change',	'have_to_change',	NULL,	'0000-00-00 00:00:00',	1,	0,	0,	'0000-00-00',	'0000-00-00 00:00:00',	10,	'Galina',	'Xenova',	74025386215244),
+(26,	'stan.coddddder@gmail.com',	'ebbc56aaa2880c8f812c83d3958f6e022ac8b3f41b6ce716e12b91d2515968c04b8bfd320ed9366e6c1e70d42c28724972e26d99e5fe6e4c71c639b9b778e488EB819710494F0632D418182CEA118B6115D05E927FFEB15F55',	'e1aa108d4a452f11efab5b7d6ed34a412d89a8191e6e11820d4500a2d08daea39469c3063bed257c6cfb50cc011d66d6034d2defca65b820473aec7fc7c48e7a',	'a397cd0793c692af24aec8f937d47983e8bef13c5607cc32ac95790fc96786ed60bc9a21869a5afeb31b02a8ee053f470feda3c5ed675df4fd7eee8e21a7e560',	'2015-10-16 06:01:56',	1,	0,	0,	'2015-10-13',	'0000-00-00 00:00:00',	24,	'Astor',	'Poper',	96826410683275);
+
+DROP TABLE IF EXISTS `users_sessions`;
+CREATE TABLE `users_sessions` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) unsigned NOT NULL,
+  `hash` char(128) NOT NULL,
+  `expire` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_id` (`user_id`),
+  CONSTRAINT `users_sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `users_sessions` (`id`, `user_id`, `hash`, `expire`) VALUES
+(41,	22,	'38373a151d5f23bde4cb0cc682417674e30736e6858750055cdce0fa5d50872ffa6ed38d909e60af469cf04ae0794eb3662e434459c4eeff9cce709f812f43e5',	'0000-00-00 00:00:00');
+
+DROP TABLE IF EXISTS `packed_general_entities`;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `packed_general_entities` AS (select `u`.`entity_id` AS `entity_id`,`u`.`uid` AS `uid`,concat(`u`.`first_name`,'|',`u`.`surname`) AS `info`,2 AS `e_type` from `users` `u` having (`info` is not null)) union all (select `g`.`entity_id` AS `entity_id`,`g`.`uid` AS `uid`,`g`.`title` AS `info`,1 AS `e_type` from `groups` `g`);
+
+-- 2015-10-18 14:43:37  `is_confirmed` tinyint(1) NOT NULL DEFAULT '0',
   `is_password_recover_code_sended` tinyint(1) NOT NULL DEFAULT '0',
   `created` date NOT NULL,
   `last_visit` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',

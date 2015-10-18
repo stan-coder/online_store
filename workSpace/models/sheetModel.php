@@ -32,9 +32,9 @@ class SheetModel extends modelManager
           left join (select l1.entity_id, count(l1.entity_id) likes_count from likes l1 group by l1.entity_id) l2 on t1.e_id = l2.entity_id
           left join not_owners_created_entities notown on t1.e_id = notown.entity_id
           left join users u on notown.entity_user_id = u.entity_id
-          left join (
-            select e3.parent_id, count(e3.id) as reposts_count from entities e3
-            left join reposts r1 on e3.id = r1.entity_sheet_id where r1.entity_sheet_id is not null group by e3.parent_id) e2 on t1.e_id = e2.parent_id
+          left join
+            (select e3.parent_id, count(e3.id) as reposts_count from entities e3
+              left join reposts r1 on e3.id = r1.entity_sheet_id where r1.entity_sheet_id is not null group by e3.parent_id) e2 on t1.e_id = e2.parent_id
           left join (select re1.entity_id, count(re1.entity_id) as reviews_count from reviews_entities re1 group by re1.entity_id) re2 on t1.e_id = re2.entity_id
           left join (select e4.parent_id, count(c.entity_id) as comments_count, count(c.entity_id)+sum(sc.children_count) as total_comments_count from comments c
             left join entities e4 on c.entity_id = e4.id
@@ -89,7 +89,7 @@ class SheetModel extends modelManager
           left join entities_sheet esh1 on e4.parent_id = esh1.entity_id
         where r1.entity_sheet_id in ({$qu})
         order by r1.created asc";
-        return $this->db()->select($sql, $listId); // {$qu}
+        return $this->db()->select($sql, $listId);
     }
 
     public function getEntitiesByIndex($index) {
@@ -98,5 +98,31 @@ class SheetModel extends modelManager
 
     private function replaceKeys($array, $field) {
         return is_array($array) && count($array) > 0 ? array_combine(array_column($array, $field), $array) : [];
+    }
+
+    public function getCommentsByEntitiesList($placeholdersId, $data) {
+        $sql = "select
+          e1.parent_id,
+          c1.entity_id en_id,
+          c1.entity_user_id user_owner_en_id,
+          c1.content content,
+          c1.created created,
+          count(c1.entity_id) as count_of_child_comments,
+          l2.cn count_of_likes,
+          if (l3.entity_id_user = :enUserId, 1, null) as is_liked_by_current_user,
+          if (nvw.entity_user_id = :enUserId, 1, null) as not_viewed_by_user,
+          concat(u.first_name, ' ', u.surname) userInit
+        from comments c1
+        left join entities e1 on c1.entity_id = e1.id
+        left join entities e2 on c1.entity_id = e2.parent_id
+        left join (select l1.entity_id, count(l1.entity_id) as cn from likes l1 group by l1.entity_id) l2 on c1.entity_id = l2.entity_id
+        left join likes l3 on c1.entity_id = l3.entity_id and l3.entity_id_user = :enUserId
+        left join ignored_entities_by_users ign on c1.entity_id = ign.entity_id and ign.entity_user_id = :enUserId
+        left join not_viewed_new_comments_by_users nvw on c1.entity_id = nvw.entity_comment_id and nvw.entity_user_id = :enUserId
+        left join users u on c1.entity_user_id = u.entity_id
+        where e1.parent_id in ({$placeholdersId}) and ign.entity_id is null
+        group by c1.entity_id
+        order by c1.created asc";
+        return $this->db()->select($sql, $data);
     }
 }
