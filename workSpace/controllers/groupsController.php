@@ -5,7 +5,7 @@ class groupsController extends controllerManager
     public static $url = [
         'sheet' => [
             'url' => '~^/group/\d{14}$~m',
-            'js' => ['jquery-1.11.3.min.js', 'groupTabs.js', 'sha512.min.js']
+            'js' => ['jquery-1.11.3.min.js', 'control.js', 'groupTabs.js', 'sheet.js', 'sha512.min.js']
         ],
         'getUsers' => [
             'url' => '/groups/ajax/getUsers',
@@ -16,7 +16,7 @@ class groupsController extends controllerManager
             'ajax' => true
         ]
     ];
-    private $validData = [0, 1],
+    private $validData = [],
             $sheet = [],
             $comments = [];
 
@@ -47,16 +47,7 @@ class groupsController extends controllerManager
         array_walk_recursive($allEntId, function($el) use(&$li){
             $li[] = $el;
         });
-        $plH = [];
-        $plS = '';
-        foreach ($li as $key => $l) {
-            $plH[':e'.$key] = $l;
-            $plS .= ':e'.$key.',';
-        }
-        $plH['enUserId'] = $this->session()->get('userEntityId');
-        if (is_array($comments = $this->model('sheet')->getCommentsByEntitiesList(substr($plS, 0, -1), $plH)) && count($comments) > 0) {
-            $this->prepareComments($comments);
-        }
+        $this->prepareComments($li);
         foreach ($types as $key => $type) {
             $lId = $allEntId[$key];
             $qu = implode(',', array_fill(1, count($lId), '?'));
@@ -66,21 +57,59 @@ class groupsController extends controllerManager
                 call_user_func_array([$this, 'prepare'.ucfirst($typeEntity)], [$enId, $data, $entities]);
             }
         }
-        ksort($this->sheet);
+        krsort($this->sheet);
         $this->sheet = array_values($this->sheet);
+        $this->bindEntitiesAndComments();
         set(['groupId' => $group['entity_id'],
-            'hash' => $hash = strtoupper(substr(hash('sha512', $this->model('customFunction')->getRandomString()), 0, 100))]);
+            'hash' => $hash = strtoupper(substr(hash('sha512', $this->model('customFunction')->getRandomString().$this->session()->get('userSessionHash')), 0, 100)),
+            'jsonSheet' => json_encode($this->sheet)]);
         $this->setTitle($group['title']);
         $this->session()->set('ajaxHash', $hash);
     }
 
     /**
-     * Prepare comments to array representation to include in rendered entity
-     * @param $comArray
+     * Binding entities and comments
      */
-    private function prepareComments($comArray) {
-        // array_unique(array_column($comArray, 'parent_id'))
-        $this->comments = [];
+    private function bindEntitiesAndComments() {
+        $cm = $this->comments;
+        $this->sheet = array_map(function($el) use($cm){
+            $entId = (is_numeric($minKey = min(array_keys($el))) ? $el[$minKey]['entity_post_id'] : $el['entity_id']);
+            if (isset($cm[$entId])) {
+                $el['comments'] = $cm[$entId];
+            }
+            return $el;
+        }, $this->sheet);
+    }
+
+    /**
+     * Prepare comments to array representation to include in rendered entity
+     * @param $li
+     * @return array
+     */
+    private function prepareComments($li) {
+        $plH = [];
+        $plS = '';
+        foreach ($li as $key => $l) {
+            $plH[':e'.$key] = $l;
+            $plS .= ':e'.$key.',';
+        }
+        $plH['enUserId'] = $this->session()->get('userEntityId');
+        if (!is_array($comments = $this->model('sheet')->getCommentsByEntitiesList(substr($plS, 0, -1), $plH)) && count($comments) > 0) {
+            return [];
+        }
+        foreach (array_unique(array_column($comments, 'parent_id')) as $parentId) {
+            $tmEl = array_filter($comments, function($el) use($parentId){
+                return $el['parent_id'] == $parentId;
+            });
+            usort($tmEl, function ($a, $b) {
+                if (($c1 = $a['created']) == ($c2 = $b['created'])) return 0;
+                return ($c1 > $c2) ? -1 : 1;
+            });
+            $this->comments[$parentId] = array_values(array_map(function($el){
+                unset($el['parent_id']);
+                return array_filter($el);
+            }, $tmEl));
+        }
     }
 
     /**
@@ -92,7 +121,7 @@ class groupsController extends controllerManager
     private function preparePublications($enId, $data, $entities) {
         $tm = array_merge(array_filter($entities[$enId], function($el){
             return !is_null($el);
-        }), ['content' => nl2br($data[$enId]['content'])]);
+        }), ['content' => $data[$enId]['content']]);
         $this->sheet[$tm['created']] = $tm;
     }
 
@@ -179,8 +208,8 @@ class groupsController extends controllerManager
      * Get info about group
      */
     public function getInfo() {
-        $this->validAjaxData(['groupId', 'name'], function($t){
-            return strlen($t->getData(1)) < 3 || !ctype_digit($t->getData(0));
+        $this->validAjaxData(['groupId'], function($t){
+            return !ctype_digit($t->getData(0)) || (int)$t->getData(0) < 1;
         });
         $groupInfo = $this->model('groups')->getInitialInfo($_POST['groupId'], $this->session()->get('userEntityId'));
         $rt = !$groupInfo ? [0, 0, 'Group not found'] : [1, $groupInfo, 0];

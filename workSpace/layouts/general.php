@@ -32,7 +32,7 @@
 <?php /*renderPartial('renderGeneralMenu');*/?>
 <div class="container">
     <?php renderPartial('quickExplore');?>
-    <?php eval("?>{$content}<?");?>
+    <?php eval("?>{$content}");?>
 </div>
 </body>
 </html>

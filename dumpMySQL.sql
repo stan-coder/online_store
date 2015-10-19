@@ -469,10 +469,6 @@ INSERT INTO `owners_reposts` (`entity_repost_id`, `entity_owner_id`, `created`) 
 (31,	10,	'2015-10-16 04:29:18'),
 (32,	1,	'2015-10-16 04:34:24');
 
-DROP VIEW IF EXISTS `packed_general_entities`;
-CREATE TABLE `packed_general_entities` (`entity_id` int(11), `uid` bigint(20), `info` varchar(200), `e_type` bigint(20));
-
-
 DROP TABLE IF EXISTS `products`;
 CREATE TABLE `products` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -745,9 +741,6 @@ CREATE TABLE `users_sessions` (
 INSERT INTO `users_sessions` (`id`, `user_id`, `hash`, `expire`) VALUES
 (41,	22,	'38373a151d5f23bde4cb0cc682417674e30736e6858750055cdce0fa5d50872ffa6ed38d909e60af469cf04ae0794eb3662e434459c4eeff9cce709f812f43e5',	'0000-00-00 00:00:00');
 
-DROP TABLE IF EXISTS `packed_general_entities`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `packed_general_entities` AS (select `u`.`entity_id` AS `entity_id`,`u`.`uid` AS `uid`,concat(`u`.`first_name`,'|',`u`.`surname`) AS `info`,2 AS `e_type` from `users` `u` having (`info` is not null)) union all (select `g`.`entity_id` AS `entity_id`,`g`.`uid` AS `uid`,`g`.`title` AS `info`,1 AS `e_type` from `groups` `g`);
-
 -- 2015-10-18 14:43:37  `is_confirmed` tinyint(1) NOT NULL DEFAULT '0',
   `is_password_recover_code_sended` tinyint(1) NOT NULL DEFAULT '0',
   `created` date NOT NULL,
@@ -767,21 +760,9 @@ INSERT INTO `users` (`id`, `email`, `password`, `salt`, `routine_hash_code`, `ro
 (24,	'yeld@mail.ru',	'have_to_change',	'have_to_change',	NULL,	'0000-00-00 00:00:00',	1,	0,	0,	'0000-00-00',	'0000-00-00 00:00:00',	10,	'Galina',	'Xenova',	74025386215244),
 (26,	'stan.coddddder@gmail.com',	'ebbc56aaa2880c8f812c83d3958f6e022ac8b3f41b6ce716e12b91d2515968c04b8bfd320ed9366e6c1e70d42c28724972e26d99e5fe6e4c71c639b9b778e488EB819710494F0632D418182CEA118B6115D05E927FFEB15F55',	'e1aa108d4a452f11efab5b7d6ed34a412d89a8191e6e11820d4500a2d08daea39469c3063bed257c6cfb50cc011d66d6034d2defca65b820473aec7fc7c48e7a',	'a397cd0793c692af24aec8f937d47983e8bef13c5607cc32ac95790fc96786ed60bc9a21869a5afeb31b02a8ee053f470feda3c5ed675df4fd7eee8e21a7e560',	'2015-10-16 06:01:56',	1,	0,	0,	'2015-10-13',	'0000-00-00 00:00:00',	24,	'Astor',	'Poper',	96826410683275);
 
-DROP TABLE IF EXISTS `users_sessions`;
-CREATE TABLE `users_sessions` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` int(10) unsigned NOT NULL,
-  `hash` char(128) NOT NULL,
-  `expire` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `user_id` (`user_id`),
-  CONSTRAINT `users_sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-INSERT INTO `users_sessions` (`id`, `user_id`, `hash`, `expire`) VALUES
-(41,	22,	'05ca836631c0ae4273f345b48be7aca7f00dfb558265b3aee40efc411e15d0fb9719f7722b71d7146250f14564268c4870ad95ea9b89d67247d9a05194a4883b',	'0000-00-00 00:00:00');
-
-DROP TABLE IF EXISTS `packed_general_entities`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `packed_general_entities` AS (select `u`.`entity_id` AS `entity_id`,`u`.`uid` AS `uid`,concat(`u`.`first_name`,'|',`u`.`surname`) AS `info`,2 AS `e_type` from `users` `u` having (`info` is not null)) union all (select `g`.`entity_id` AS `entity_id`,`g`.`uid` AS `uid`,`g`.`title` AS `info`,1 AS `e_type` from `groups` `g`);
+create view `packed_general_entities` as
+(select u.entity_id, u.uid, concat(first_name, '|', surname) as info, 2 as e_type from users u having info is not null)
+union all
+(select g.entity_id, g.uid, g.title info, 1 as e_type from groups g);
 
 -- 2015-10-17 17:03:20

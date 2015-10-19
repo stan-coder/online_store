@@ -1,11 +1,10 @@
 $(document).ready(function(){
 
-    var tabs = function(){
+    function Tabs(){
 
         var tabsId = ['sheet', 'info', 'users', 'newUsers'];
         var loadedTabs = [];
         var groupId = 0;
-        var hash = null;
         var tabSurface = $('#surface');
 
         /**
@@ -27,25 +26,21 @@ $(document).ready(function(){
                 return;
             }
             var url = '/groups/ajax/get' + upId;
-            var hs = this.getSaltedHash();
             $.ajax({
                 url: url,
                 data: {
-                    groupId: groupId,
-                    name: 'Root',
-                    hash: hs[0],
-                    salt: hs[1]
+                    groupId: groupId
                 },
                 success: function(data){
                     if (!data.success) {
-                        this.show('There is an error as a result of request');
+                        this.showAlert('There is an error as a result of request');
                         return;
                     }
                     loadedTabs.push(upId);
                     this['showTab'+upId](data.data);
                 },
                 error: function(){
-                    this.show('Sorry, but occurred unknown error');
+                    this.showAlert('Sorry, but occurred unknown error');
                 }
             });
         };
@@ -54,9 +49,9 @@ $(document).ready(function(){
          * Init tabs control
          */
         this.init = function(){
+            this.initControl();
             groupId = $('#groupId').val();
             if (typeof groupId == 'undefined') return;
-            hash = $('#hash').val();
             var li = $('#groupTabs > li');
             li.on('click', this, function(event){
                 if ($(this).hasClass('active') == false) {
@@ -65,30 +60,12 @@ $(document).ready(function(){
                     event.data.switchTabs($(this).get(0).id);
                 }
             });
-            $.ajaxSetup({
-                type: 'POST',
-                dataType: 'json',
-                context: this
-            });
             var urlHash = document.location.hash;
             if (urlHash.length > 0) {
                 var selLi = li.parent().children(urlHash);
                 if (selLi.size() !== 1 || tabsId.indexOf(urlHash.substr(1)) === -1) alert('You have proceeded via incorrect url.');
                 else selLi.trigger('click');
             }
-        };
-
-        /**
-         * Get array contains salted hash and appropriate salt
-         * @returns {*[]}
-         */
-        this.getSaltedHash = function(){
-            var salt = (new Date()).getTime();
-            for (var h=0; h<10; h++) {
-                salt += Math.random().toString();
-            }
-            salt = sha512(salt).substr(0, 20);
-            return [sha512(hash + salt).substr(0, 50), salt];
         };
 
         /**
@@ -142,11 +119,8 @@ $(document).ready(function(){
             div.id = 'tab'+id;
             return div;
         };
-
-        this.showAlert = function(message){
-            alert(message);
-        }
     };
 
-    (new tabs()).init();
+    Tabs.prototype = new Control();
+    (new Tabs()).init();
 });

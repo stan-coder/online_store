@@ -41,7 +41,7 @@ class SheetModel extends modelManager
             left join sub_comments_total_count sc on c.entity_id = sc.entity_parent_comment_id
           group by e4.parent_id) as e5 on e5.parent_id = t1.e_id
           where t2.entity_id is null
-          order by t1.created, t1.e_id limit 8';
+          order by t1.created, t1.e_id desc limit 8';
         return $this->replaceKeys($this->db()->select($sql, [':g_id' => $groupEntityId, ':u_id' => $userEntityId]), 'entity_id');
     }
 
@@ -88,7 +88,7 @@ class SheetModel extends modelManager
           left join packed_general_entities t4 on t4.entity_id = e5.parent_id
           left join entities_sheet esh1 on e4.parent_id = esh1.entity_id
         where r1.entity_sheet_id in ({$qu})
-        order by r1.created asc";
+        order by r1.created desc";
         return $this->db()->select($sql, $listId);
     }
 
@@ -122,7 +122,7 @@ class SheetModel extends modelManager
         left join users u on c1.entity_user_id = u.entity_id
         where e1.parent_id in ({$placeholdersId}) and ign.entity_id is null
         group by c1.entity_id
-        order by c1.created asc";
+        order by c1.created desc";
         return $this->db()->select($sql, $data);
     }
 }
