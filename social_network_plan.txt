@@ -1,3 +1,18 @@
+count_of_comments
+count_of_likes
+count_of_rePosts
+count_of_reviews
+total_count_of_comments
+created
+not_owner_entity(is user: u_f_name, u_surname, u_uid)
+
+entity_type
+entity_id
+
+- liked_by_cur_user
+- reposted_by_cur_user
+--------------------
+
 Tables:
 
 Groups:

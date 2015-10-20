@@ -13,10 +13,13 @@
             <hr/>
             <div class="extra">
                 <p class="created">Created: <span>2015-10-10 09:40:29</span></p>
-                <p class="abs likes">Likes: <span>5</span></p>
-                <p class="abs rePosts">Reposts: <span>10</span></p>
-                <p class="abs comments">Comments: <span>12</span></p>
                 <p class="abs totalComments">Total count of comments: <span>22</span></p>
+                <div class="like"></div>
+                <div class="likesCount">5</div>
+                <div class="rePost"></div>
+                <div class="rePostsCount">10</div>
+                <div class="comment"></div>
+                <div class="commentsCount">27</div>
             </div>
         </div>
     </div>

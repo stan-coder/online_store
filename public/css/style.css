@@ -115,13 +115,14 @@ body{
     width: 500px;
     height: auto;
     max-height: 400px;
-    border: 1px solid #8c8c8c;
+    border: 1px solid #C9C9C9;
+    border-radius: 3px;
 }
 
 .publication hr{
     width: 100%;
     height: 1px;
-    background: red;
+    background: #C9C9C9;
     margin: 5px 0 7px;
 }
 
@@ -131,9 +132,12 @@ body{
 
 .extra{
     width: 500px;
-    height: 70px;
+    height: 85px;
     padding: 0 8px 0 8px;
-    /*font-size: 12px;*/
+}
+
+.extra span, .extra p{
+    font-size: 14px;
 }
 
 div#surface div{
@@ -149,23 +153,56 @@ p.created > span{
     position: absolute;
 }
 
-p.likes{
-    margin: -30px 0 0 210px;
-
-}
-
-p.likes > span, p.rePosts > span, p.comments > span, p.totalComments > span{
+p.totalComments > span{
     font-style: italic;
 }
 
-p.rePosts{
-    margin: -30px 0 0 280px;
-}
-
-p.comments{
-    margin: -7px 0 0 0;
-}
-
 p.totalComments{
-    margin: -7px 0 0 110px;
+    margin: -31px 0 0 220px;;
+}
+
+.like, .rePost, .comment{
+    cursor: pointer;
+    position: relative;
+}
+
+.likesCount, .rePostsCount, .commentsCount{
+    position: relative;
+}
+
+.like{
+    width: 24px;
+    height: 24px;
+    background: url("/public/img/like.png");
+    top: 19px;
+}
+
+.likesCount{
+    left: 32px;
+}
+
+.rePost{
+    width: 24px;
+    height: 24px;
+    background: url("/public/img/share.png");
+    top: -24px;
+    left: 70px;
+}
+
+.rePostsCount{
+    left: 104px;
+    top: -45px;
+}
+
+.comment{
+    width: 24px;
+    height: 24px;
+    background: url("/public/img/comment.png");
+    top: -67px;
+    left: 140px;
+}
+
+.commentsCount{
+    left: 174px;
+    top: -90px;
 }
