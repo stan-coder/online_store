@@ -60,6 +60,11 @@ class groupsController extends controllerManager
         krsort($this->sheet);
         $this->sheet = array_values($this->sheet);
         $this->bindEntitiesAndComments();
+        array_walk_recursive($this->sheet, function(&$el, $key){
+            if ($key == 'created') {
+                $el = date('d F Y h:i', strtotime($el));
+            }
+        });
         set(['groupId' => $group['entity_id'],
             'hash' => $hash = strtoupper(substr(hash('sha512', $this->model('customFunction')->getRandomString().$this->session()->get('userSessionHash')), 0, 100)),
             'jsonSheet' => json_encode($this->sheet)]);

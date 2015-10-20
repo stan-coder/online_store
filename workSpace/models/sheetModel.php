@@ -5,7 +5,7 @@ class SheetModel extends modelManager
     private $entitiesTypeList = ['publications', 'reposts'];
 
     public function getListEntities($groupEntityId, $userEntityId){
-        $sql = 'select
+        $sql = "select
           t1.e_id entity_id,
           t1.e_type entity_type,
           t1.created created,
@@ -47,7 +47,7 @@ class SheetModel extends modelManager
             inner join entities_sheet esh0 on e7.id = esh0.entity_id and esh0.type_entity_id = 2
             inner join owners_reposts owr5 on esh0.entity_id = owr5.entity_repost_id and entity_owner_id = :u_id) e6 on t1.e_id = e6.parent_id
         where t2.entity_id is null
-        order by t1.created, t1.e_id desc limit 8';
+        order by t1.created, t1.e_id desc limit 8";
         return $this->replaceKeys($this->db()->select($sql, [':g_id' => $groupEntityId, ':u_id' => $userEntityId]), 'entity_id');
     }
 
@@ -113,13 +113,14 @@ class SheetModel extends modelManager
           c1.entity_user_id user_owner_en_id,
           c1.content content,
           c1.created created,
+          -- DATE_FORMAT(c1.created, '%d %b %Y %H:%i') created,
           count(c1.entity_id) as count_of_child_comments,
           l2.cn count_of_likes,
           if (l3.entity_id_user = :enUserId, 1, null) as is_liked_by_current_user,
           if (nvw.entity_user_id = :enUserId, 1, null) as not_viewed_by_user,
           concat(u.first_name, ' ', u.surname) userInit
         from comments c1
-        left join entities e1 on c1.entity_id = e1.id
+        inner join entities e1 on c1.entity_id = e1.id
         left join entities e2 on c1.entity_id = e2.parent_id
         left join (select l1.entity_id, count(l1.entity_id) as cn from likes l1 group by l1.entity_id) l2 on c1.entity_id = l2.entity_id
         left join likes l3 on c1.entity_id = l3.entity_id and l3.entity_id_user = :enUserId
