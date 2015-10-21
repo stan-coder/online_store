@@ -1,16 +1,18 @@
-count_of_comments
-count_of_likes
-count_of_rePosts
-count_of_reviews
-total_count_of_comments
-created
-not_owner_entity(is user: u_f_name, u_surname, u_uid)
+count_of_comments       = 0
+count_of_likes          = 0
+count_of_rePosts        = 0
+count_of_reviews        = 0
+total_count_of_comments = 0
+created                 = not_specified
+other_owner_en_u_id(is user: u_initials, u_uid) = null
 
-entity_type
-entity_id
+entity_type             = null
+entity_id               = null
+content                 = null
+comments                = null
 
-- liked_by_cur_user
-- reposted_by_cur_user
+- liked_by_cur_user     = null
+- reposted_by_cur_user  = null
 --------------------
 
 Tables:

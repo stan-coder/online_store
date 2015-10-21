@@ -4,13 +4,13 @@
 
 function Control(){
 
-    var hash = null;
+    var _hash = null;
 
     /**
      * Init control class
      */
     this.initControl = function(){
-        hash = $('#hash').val();
+        _hash = $('#hash').val();
         $.ajaxSetup({
             type: 'POST',
             dataType: 'json',
@@ -32,7 +32,7 @@ function Control(){
             salt += Math.random().toString();
         }
         salt = sha512(salt).substr(0, 20);
-        return [sha512(hash + salt).substr(0, 50), salt];
+        return [sha512(_hash + salt).substr(0, 50), salt];
     };
 
     /**
