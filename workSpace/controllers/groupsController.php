@@ -5,7 +5,7 @@ class groupsController extends controllerManager
     public static $url = [
         'sheet' => [
             'url' => '~^/group/\d{14}$~m',
-            'js' => ['jquery-1.11.3.min.js', 'control.js', 'groupTabs.js', 'sheet.js', 'sha512.min.js']
+            'js' => ['jquery-1.11.3.min.js', 'control.js', 'groupTabs.js', 'sheet.js', 'sha512.min.js', 'entity.js', 'eventManager.js']
         ],
         'getUsers' => [
             'url' => '/groups/ajax/getUsers',
@@ -61,9 +61,7 @@ class groupsController extends controllerManager
         $this->sheet = array_values($this->sheet);
         $this->bindEntitiesAndComments();
         array_walk_recursive($this->sheet, function(&$el, $key){
-            if ($key == 'created') {
-                $el = date('d F Y h:i', strtotime($el));
-            }
+            if ($key == 'created') $el = date('d F Y h:i', strtotime($el));
         });
         set(['groupId' => $group['entity_id'],
             'hash' => $hash = strtoupper(substr(hash('sha512', $this->model('customFunction')->getRandomString().$this->session()->get('userSessionHash')), 0, 100)),
@@ -80,7 +78,7 @@ class groupsController extends controllerManager
         $this->sheet = array_map(function($el) use($cm){
             $entId = (is_numeric($minKey = min(array_keys($el))) ? $el[$minKey]['entity_post_id'] : $el['entity_id']);
             if (isset($cm[$entId])) {
-                $el['comments'] = $cm[$entId];
+                $el['commentsArray'] = $cm[$entId];
             }
             return $el;
         }, $this->sheet);

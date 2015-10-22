@@ -13,6 +13,8 @@ comments                = null
 
 - liked_by_cur_user     = null
 - reposted_by_cur_user  = null
+
+comments                = []
 --------------------
 
 Tables:

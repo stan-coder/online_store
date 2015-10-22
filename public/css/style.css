@@ -321,7 +321,7 @@ p.totalComments{
 .reviews{
     width: 24px;
     height: 24px;
-    background: url("/public/img/viewed_count.png");
+    background: url("/public/img/viewedCount.png");
     top: -130px;
     left: 210px;
 }
@@ -329,4 +329,8 @@ p.totalComments{
 .reviewsCount{
     left: 244px;
     top: -153px;
+}
+
+.publication .content a{
+    color: #F44336;
 }
