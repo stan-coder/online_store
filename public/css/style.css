@@ -280,11 +280,16 @@ p.totalComments{
     text-decoration: none;
 }
 /*****************/
-.addLike{
+.addLike, .isLiked{
     width: 24px;
     height: 24px;
     background: url("/public/img/like.png");
     top: -2px;
+}
+
+.isLiked{
+    background: url("/public/img/likeDone.png");
+    cursor: pointer;
 }
 
 .likesCount{

@@ -93,7 +93,7 @@ $(document).ready(function(){
                 ext[elArr[a]] = this.createElement('div', {'class':elArr[a]});
                 if (a%2 == 1) ext[elArr[a]].append(this.createElement('a').text(_prepData.get(elArr[a].slice(0, -5).toLowerCase())));
             }
-            if (parseInt(_prepData.get('liked_by_cur_user'))===1) $(ext.addLike.get()).css('background', 'url("/public/img/likeDone.png")');
+            if (parseInt(_prepData.get('liked_by_cur_user'))===1) $(ext.addLike.get()).get(0).className = 'isLiked';
             if (parseInt(_prepData.get('reposted_by_cur_user'))===1) $(ext.addRePost.get()).css('background', 'url("/public/img/shareDone.png")');
 
             var divExtra = this.createElement('div', {'class':'extra'});
@@ -106,7 +106,7 @@ $(document).ready(function(){
 
             content.get().innerHTML = _prepData.get('content') + (_prepData.get('other_owner_en_u_id')!==null?'<br/> Posted by: '+_prepData.get('other_owner_en_u_id'):'');
             _surface.append(mainDiv.get());
-            console.log(data);
+            //console.log(data);
         };
 
         /**

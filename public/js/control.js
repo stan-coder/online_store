@@ -18,6 +18,9 @@ function Control(){
             beforeSend: function(jqxhr, settings){
                 var hs = this.getSaltedHash();
                 settings.data += '&hash='+hs[0]+'&salt='+hs[1];
+            },
+            error: function(){
+                this.showAlert('Unknown error was occured');
             }
         });
     };
@@ -88,5 +91,3 @@ function Control(){
         };
     };
 }
-
-$f = new Control();

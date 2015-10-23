@@ -21,7 +21,6 @@ class controllerManager extends baseManager
 
     /**
      * Get prepared resources
-     *
      * @return string
      */
     public static function getResources() {
@@ -41,7 +40,6 @@ class controllerManager extends baseManager
 
     /**
      * Get needed Db instance
-     *
      * @param null $classType
      * @return mixed
      */
@@ -51,7 +49,6 @@ class controllerManager extends baseManager
 
     /**
      * Set title of html-page
-     *
      * @param $value
      */
     public function setTitle($value) {
@@ -60,7 +57,6 @@ class controllerManager extends baseManager
 
     /**
      * Add js-file in list
-     *
      * @param $fileName
      */
     public function js($fileName) {
@@ -73,7 +69,6 @@ class controllerManager extends baseManager
 
     /**
      * Add css-file in list
-     *
      * @param $fileName
      */
     public function css($fileName) {
@@ -86,7 +81,6 @@ class controllerManager extends baseManager
 
     /**
      * Set layout
-     *
      * @param $name
      */
     public function setLayout($name) {
@@ -95,7 +89,6 @@ class controllerManager extends baseManager
 
     /**
      * Set another view
-     *
      * @param $controller
      * @param $name
      */
@@ -108,7 +101,6 @@ class controllerManager extends baseManager
 
     /**
      * Get math url
-     *
      * @return null
      */
     public function getMatchUrl() {
@@ -117,7 +109,6 @@ class controllerManager extends baseManager
 
     /**
      * Short access to session model
-     *
      * @return mixed
      */
     public function session() {
@@ -130,7 +121,6 @@ class controllerManager extends baseManager
 
     /**
      * Get message of field error
-     *
      * @param $index
      * @return mixed
      */
@@ -141,7 +131,6 @@ class controllerManager extends baseManager
 
     /**
      * Set message of field error
-     *
      * @param $index
      * @param $message
      */
@@ -151,7 +140,6 @@ class controllerManager extends baseManager
 
     /**
      * Check form on valid all fields
-     *
      * @return bool
      */
     public function formIsValid() {
@@ -166,7 +154,6 @@ class controllerManager extends baseManager
 
     /**
      * Get post field
-     *
      * @param $key
      * @return mixed
      */
@@ -176,7 +163,6 @@ class controllerManager extends baseManager
 
     /**
      * Redirect to url
-     *
      * @param $url
      */
     public function redirect($url) {
@@ -186,7 +172,6 @@ class controllerManager extends baseManager
 
     /**
      * If request was sent through method post
-     *
      * @return bool
      */
     protected function isPost() {
@@ -195,7 +180,6 @@ class controllerManager extends baseManager
 
     /**
      * Init checking form
-     *
      * @param $fields
      * @return $this
      */
@@ -219,7 +203,6 @@ class controllerManager extends baseManager
 
     /**
      * Validate field
-     *
      * @param $field
      * @param $condition
      * @param $message
@@ -238,7 +221,6 @@ class controllerManager extends baseManager
 
     /**
      * Check list of fields on empty one
-     *
      * @return $this
      */
     protected function isEmpty() {
@@ -250,5 +232,43 @@ class controllerManager extends baseManager
             }
         }
         return $this;
+    }
+
+    /**
+     * Validating data that was transferred via ajax
+     * @param $data
+     * @param $validate
+     */
+    protected function validAjaxData($data, $validate) {
+        if (count($hs = array_keys(array_filter(array_flip($_POST), function($e){
+                return in_array($e, ['hash', 'salt']);
+            }))) !== 2 || substr(hash('sha512', $this->session()->get('ajaxHash') . $hs[1]), 0, 50) !== (string)$hs[0] ) {
+            $this->getJson(0, 0, 'Incorrect request');
+        }
+        if (!is_array($this->validData = $data) || !is_callable($validate)) {
+            $this->getJson(0, 0, Config::$debug ? 'The validating data contains incorrect value' : 'Unknown error');
+        }
+        if ((new ReflectionFunction($validate))->invoke($this)) {
+            $this->getJson(0, 0, 'Incorrect data');
+        }
+    }
+
+    /**
+     * Return encoded json result
+     * @param $success
+     * @param $data
+     * @param null $message
+     */
+    protected function getJson($success, $data, $message = null) {
+        exit(json_encode(array_merge(['success' => (bool)$success], is_array($data) ? ['data' => $data] : [], is_string($message) ? ['message' => $message] : [])));
+    }
+
+    /**
+     * Get ajax data that will be checked
+     * @param $num
+     * @return null
+     */
+    protected function getData($num) {
+        return isset($this->validData[$num]) && isset($_POST[$this->validData[$num]]) ? $_POST[$this->validData[$num]] : null;
     }
 }

@@ -1,4 +1,4 @@
--- Adminer 4.2.1 MySQL dump
+-- Adminer 4.2.2 MySQL dump
 
 SET NAMES utf8;
 SET time_zone = '+00:00';
@@ -144,7 +144,8 @@ INSERT INTO `comments` (`entity_id`, `entity_user_id`, `content`, `created`) VAL
 (34,	10,	'Самый, самый последний коммент для публикации с id = 2',	'2015-10-18 11:17:52'),
 (35,	8,	'Первый комментарий для сущности id = 7',	'2015-10-18 14:09:21'),
 (36,	10,	'Второй комментарий для сущности id = 7',	'2015-10-18 14:11:09'),
-(37,	9,	'Первый комментарий для сущности id = 30',	'2015-10-18 14:12:21');
+(37,	9,	'Первый комментарий для сущности id = 30',	'2015-10-18 14:12:21'),
+(38,	8,	'Первый комментарий для перепоста id = 25',	'2015-10-19 04:09:07');
 
 DROP TABLE IF EXISTS `entities`;
 CREATE TABLE `entities` (
@@ -183,6 +184,7 @@ INSERT INTO `entities` (`id`, `parent_id`) VALUES
 (19,	18),
 (20,	18),
 (26,	25),
+(38,	25),
 (27,	26),
 (28,	27),
 (29,	27),
@@ -348,6 +350,7 @@ CREATE TABLE `likes` (
 INSERT INTO `likes` (`entity_id`, `entity_id_user`) VALUES
 (2,	8),
 (6,	8),
+(7,	8),
 (18,	8),
 (25,	8),
 (2,	9),
@@ -468,6 +471,10 @@ INSERT INTO `owners_reposts` (`entity_repost_id`, `entity_owner_id`, `created`) 
 (30,	1,	'2015-10-15 11:18:19'),
 (31,	10,	'2015-10-16 04:29:18'),
 (32,	1,	'2015-10-16 04:34:24');
+
+DROP VIEW IF EXISTS `packed_general_entities`;
+CREATE TABLE `packed_general_entities` (`entity_id` int(11), `uid` bigint(20), `info` varchar(200), `e_type` bigint(20));
+
 
 DROP TABLE IF EXISTS `products`;
 CREATE TABLE `products` (
@@ -651,32 +658,6 @@ INSERT INTO `sub_comments_total_count` (`entity_parent_comment_id`, `children_co
 (15,	1),
 (18,	2);
 
-DROP TABLE IF EXISTS `tm_owners_entities`;
-CREATE TABLE `tm_owners_entities` (
-  `entity_id` int(11) NOT NULL,
-  `entity_type_owner_id` int(11) NOT NULL,
-  KEY `entity_id` (`entity_id`),
-  KEY `entity_type_owner_id` (`entity_type_owner_id`),
-  CONSTRAINT `tm_owners_entities_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `tm_owners_entities_ibfk_2` FOREIGN KEY (`entity_type_owner_id`) REFERENCES `tm_type_owners` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-INSERT INTO `tm_owners_entities` (`entity_id`, `entity_type_owner_id`) VALUES
-(1,	2),
-(9,	1),
-(10,	1);
-
-DROP TABLE IF EXISTS `tm_type_owners`;
-CREATE TABLE `tm_type_owners` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `title` varchar(20) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-INSERT INTO `tm_type_owners` (`id`, `title`) VALUES
-(1,	'Users'),
-(2,	'Groups');
-
 DROP TABLE IF EXISTS `type_entities`;
 CREATE TABLE `type_entities` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -722,7 +703,7 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `users` (`id`, `email`, `password`, `salt`, `routine_hash_code`, `routine_hash_code_expired`, `is_active`, `is_confirmed`, `is_password_recover_code_sended`, `created`, `last_visit`, `entity_id`, `first_name`, `surname`, `uid`) VALUES
-(22,	'stan.coder@gmail.com',	'ebbc56aaa2880c8f812c83d3958f6e022ac8b3f41b6ce716e12b91d2515968c04b8bfd320ed9366e6c1e70d42c28724972e26d99e5fe6e4c71c639b9b778e488EB819710494F0632D418182CEA118B6115D05E927FFEB15F55',	'e1aa108d4a452f11efab5b7d6ed34a412d89a8191e6e11820d4500a2d08daea39469c3063bed257c6cfb50cc011d66d6034d2defca65b820473aec7fc7c48e7a',	NULL,	'0000-00-00 00:00:00',	1,	1,	0,	'0000-00-00',	'2015-10-18 12:53:19',	8,	'Stanislav',	'Zavalishin',	81063635591952),
+(22,	'stan.coder@gmail.com',	'ebbc56aaa2880c8f812c83d3958f6e022ac8b3f41b6ce716e12b91d2515968c04b8bfd320ed9366e6c1e70d42c28724972e26d99e5fe6e4c71c639b9b778e488EB819710494F0632D418182CEA118B6115D05E927FFEB15F55',	'e1aa108d4a452f11efab5b7d6ed34a412d89a8191e6e11820d4500a2d08daea39469c3063bed257c6cfb50cc011d66d6034d2defca65b820473aec7fc7c48e7a',	NULL,	'0000-00-00 00:00:00',	1,	1,	0,	'0000-00-00',	'2015-10-23 03:18:27',	8,	'Stanislav',	'Zavalishin',	81063635591952),
 (23,	'max@yandex.ru',	'have_to_change',	'have_to_change',	NULL,	'0000-00-00 00:00:00',	1,	0,	0,	'0000-00-00',	'0000-00-00 00:00:00',	9,	'Max',	'Zimovsky',	62081692541920),
 (24,	'yeld@mail.ru',	'have_to_change',	'have_to_change',	NULL,	'0000-00-00 00:00:00',	1,	0,	0,	'0000-00-00',	'0000-00-00 00:00:00',	10,	'Galina',	'Xenova',	74025386215244),
 (26,	'stan.coddddder@gmail.com',	'ebbc56aaa2880c8f812c83d3958f6e022ac8b3f41b6ce716e12b91d2515968c04b8bfd320ed9366e6c1e70d42c28724972e26d99e5fe6e4c71c639b9b778e488EB819710494F0632D418182CEA118B6115D05E927FFEB15F55',	'e1aa108d4a452f11efab5b7d6ed34a412d89a8191e6e11820d4500a2d08daea39469c3063bed257c6cfb50cc011d66d6034d2defca65b820473aec7fc7c48e7a',	'a397cd0793c692af24aec8f937d47983e8bef13c5607cc32ac95790fc96786ed60bc9a21869a5afeb31b02a8ee053f470feda3c5ed675df4fd7eee8e21a7e560',	'2015-10-16 06:01:56',	1,	0,	0,	'2015-10-13',	'0000-00-00 00:00:00',	24,	'Astor',	'Poper',	96826410683275);
@@ -739,30 +720,9 @@ CREATE TABLE `users_sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `users_sessions` (`id`, `user_id`, `hash`, `expire`) VALUES
-(41,	22,	'38373a151d5f23bde4cb0cc682417674e30736e6858750055cdce0fa5d50872ffa6ed38d909e60af469cf04ae0794eb3662e434459c4eeff9cce709f812f43e5',	'0000-00-00 00:00:00');
+(41,	22,	'c77f0c8d908222171d6288fd626d9e48cbff23900c3bbe6ae11b7bd7789c151326508db5170479ebd69939dd429de2a08f061d057159e06eae60c911ea9cb808',	'0000-00-00 00:00:00');
 
--- 2015-10-18 14:43:37  `is_confirmed` tinyint(1) NOT NULL DEFAULT '0',
-  `is_password_recover_code_sended` tinyint(1) NOT NULL DEFAULT '0',
-  `created` date NOT NULL,
-  `last_visit` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `entity_id` int(11) NOT NULL,
-  `first_name` varchar(15) DEFAULT NULL,
-  `surname` varchar(15) DEFAULT NULL,
-  `uid` bigint(14) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `entity_id` (`entity_id`),
-  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+DROP TABLE IF EXISTS `packed_general_entities`;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `packed_general_entities` AS (select `u`.`entity_id` AS `entity_id`,`u`.`uid` AS `uid`,concat(`u`.`first_name`,'|',`u`.`surname`) AS `info`,2 AS `e_type` from `users` `u` having (`info` is not null)) union all (select `g`.`entity_id` AS `entity_id`,`g`.`uid` AS `uid`,`g`.`title` AS `info`,1 AS `e_type` from `groups` `g`);
 
-INSERT INTO `users` (`id`, `email`, `password`, `salt`, `routine_hash_code`, `routine_hash_code_expired`, `is_active`, `is_confirmed`, `is_password_recover_code_sended`, `created`, `last_visit`, `entity_id`, `first_name`, `surname`, `uid`) VALUES
-(22,	'stan.coder@gmail.com',	'ebbc56aaa2880c8f812c83d3958f6e022ac8b3f41b6ce716e12b91d2515968c04b8bfd320ed9366e6c1e70d42c28724972e26d99e5fe6e4c71c639b9b778e488EB819710494F0632D418182CEA118B6115D05E927FFEB15F55',	'e1aa108d4a452f11efab5b7d6ed34a412d89a8191e6e11820d4500a2d08daea39469c3063bed257c6cfb50cc011d66d6034d2defca65b820473aec7fc7c48e7a',	NULL,	'0000-00-00 00:00:00',	1,	1,	0,	'0000-00-00',	'2015-10-17 14:40:56',	8,	'Stanislav',	'Zavalishin',	81063635591952),
-(23,	'max@yandex.ru',	'have_to_change',	'have_to_change',	NULL,	'0000-00-00 00:00:00',	1,	0,	0,	'0000-00-00',	'0000-00-00 00:00:00',	9,	'Max',	'Zimovsky',	62081692541920),
-(24,	'yeld@mail.ru',	'have_to_change',	'have_to_change',	NULL,	'0000-00-00 00:00:00',	1,	0,	0,	'0000-00-00',	'0000-00-00 00:00:00',	10,	'Galina',	'Xenova',	74025386215244),
-(26,	'stan.coddddder@gmail.com',	'ebbc56aaa2880c8f812c83d3958f6e022ac8b3f41b6ce716e12b91d2515968c04b8bfd320ed9366e6c1e70d42c28724972e26d99e5fe6e4c71c639b9b778e488EB819710494F0632D418182CEA118B6115D05E927FFEB15F55',	'e1aa108d4a452f11efab5b7d6ed34a412d89a8191e6e11820d4500a2d08daea39469c3063bed257c6cfb50cc011d66d6034d2defca65b820473aec7fc7c48e7a',	'a397cd0793c692af24aec8f937d47983e8bef13c5607cc32ac95790fc96786ed60bc9a21869a5afeb31b02a8ee053f470feda3c5ed675df4fd7eee8e21a7e560',	'2015-10-16 06:01:56',	1,	0,	0,	'2015-10-13',	'0000-00-00 00:00:00',	24,	'Astor',	'Poper',	96826410683275);
-
-create view `packed_general_entities` as
-(select u.entity_id, u.uid, concat(first_name, '|', surname) as info, 2 as e_type from users u having info is not null)
-union all
-(select g.entity_id, g.uid, g.title info, 1 as e_type from groups g);
-
--- 2015-10-17 17:03:20
+-- 2015-10-23 05:38:23
