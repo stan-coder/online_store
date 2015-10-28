@@ -21,14 +21,18 @@ class EntityController extends controllerManager
      * Add like
      */
     public function like() {
-        $this->validAjaxData(['entityId'], function($t){
+        //sleep(2);
+        $this->validAjaxData(['entityId', 'reject'], function($t){
             $entityId = $t->getData(0);
             if (!ctype_digit($entityId) || (int)$entityId < 1) return true;
             if (empty($res = $t->model('entity')->checkExistingEntityAndLikeByUser($entityId, $t->userEntityId)) || empty($res['entity_id'])) $t->getJson(0, 0, 'Unknown entity');
-            if (is_numeric($res['entity_id']) && is_numeric($res['entity_id_user'])) $t->getJson(0, 0, 'Already marked');
+            if (is_numeric($res['entity_id']) && is_numeric($res['entity_id_user']) && !$t->getData(1)) $t->getJson(0, 0, 'Already marked');
             return false;
         });
-        $res = ($this->model('entity')->addNewLike($this->getData(0), $this->userEntityId) === 1 ? [1, 0, 'Like added'] : [0, 0, 'Unknown error. Liked not added']);
+        $args = ($this->getData(1) ? ['removeLike', 'removed'] : ['addLike', 'added']);
+        $res = (call_user_func_array([$this->model('entity'), $args[0]], [$this->getData(0), $this->userEntityId]) === 1
+            ? [1, 0, 'Like have been '.$args[1]]
+            : [0, 0, 'Unknown error. Liked have not been '.$args[1]]);
         call_user_func_array([$this, 'getJson'], $res);
     }
 }

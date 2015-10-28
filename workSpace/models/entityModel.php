@@ -9,8 +9,13 @@ class EntityModel extends modelManager
         return $this->db()->selectOne($sql, [':entityId' => $entityId, ':entityUserId' => $entityUserId]);
     }
 
-    public function addNewLike($entityId, $entityUserId) {
+    public function addLike($entityId, $entityUserId) {
         $sql = "insert into likes (`entity_id`, `entity_id_user`) value(?, ?)";
+        return $this->db()->exec($sql, [$entityId, $entityUserId]);
+    }
+
+    public function removeLike($entityId, $entityUserId) {
+        $sql = 'delete from likes where `entity_id` = ? and `entity_id_user` = ? limit 1';
         return $this->db()->exec($sql, [$entityId, $entityUserId]);
     }
 }

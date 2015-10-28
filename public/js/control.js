@@ -5,6 +5,7 @@
 function Control(){
 
     var _hash = null;
+    var _instance = this;
 
     /**
      * Init control class
@@ -15,9 +16,15 @@ function Control(){
             type: 'POST',
             dataType: 'json',
             context: this,
+            timeout: 3000,
             beforeSend: function(jqxhr, settings){
                 var hs = this.getSaltedHash();
                 settings.data += '&hash='+hs[0]+'&salt='+hs[1];
+                if (_instance.hasOwnProperty('ajaxExists')) jqxhr.abort();
+                _instance.ajaxExists = true;
+            },
+            complete: function(){
+                delete _instance.ajaxExists;
             },
             error: function(){
                 this.showAlert('Unknown error was occured');
@@ -89,5 +96,9 @@ function Control(){
             }
             return this;
         };
+    };
+
+    this.isAjax = function(){
+        return _instance.ajaxExists;
     };
 }

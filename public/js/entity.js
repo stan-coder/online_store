@@ -10,16 +10,25 @@ function Entity(){
      * @param e
      */
     this.like = function(e){
+        var _data = {
+            entityId: e.detail.entityId
+        };
+        if (e.detail.target.className == 'isLiked') {
+            _data.reject = true;
+        }
         $.ajax({
             url: '/entity/ajax/like',
-            data: {
-                entityId: e.detail.entityId
-            },
+            data: _data,
             success: function(data){
                 if (data.success !== true) {
-                    var message = (typeof data.message == 'string' ? data.message : 'Unknown error')
+                    var message = (typeof data.message == 'string' ? data.message : 'Unknown error');
                     this.showAlert(message);
                 }
+                var lCn = $(e.detail.target).siblings('.likesCount').find('a');
+                var cn = parseInt(lCn.text());
+                var params = (_data.hasOwnProperty('reject') ? ['addLike', cn-1] : ['isLiked', cn+1]);
+                e.detail.target.className = params[0];
+                lCn.text(params[1]);
             }
         });
     };
@@ -44,16 +53,21 @@ function Entity(){
             ['addRePost', function(tg){
                 return tg.className === 'addRePost';
             }]
-        ], function(tg){
+        ], function(tg, instance){
             return {
                 detail: {
                     entityId: $(tg).parents('.entity').attr('id'),
-                    target: tg
+                    target: tg,
+                    instance: instance
                 },
                 bubbles: false,
                 cancelable: true
             }
         }, this);
         eventManager.listen();
+    };
+
+    this.preExecMethods = function(customEvent){
+        customEvent.detail.instance[customEvent.type](customEvent);
     };
 }

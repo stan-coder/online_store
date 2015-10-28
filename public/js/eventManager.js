@@ -22,27 +22,20 @@ function EventManager() {
      * Start listening event on whole body including is not created element yet
      */
     this.listen = function(){
-        var ca = [];
-        var bf;
-        var bfResult = [];
-        var ev;
+        var buffer;
         for (var key1 in _attList) {
-            ca = _attList[key1][0];
-            bf = [];
-            for (var key2 in ca) {
-                ev = ca[key2][0];
-                _body.addEventListener(ev, _attList[key1][2][ev], false);
-                bf.push([ev, ca[key2][1]]);
+            buffer = _attList[key1][0];
+            for (var key2 in buffer) {
+                _body.addEventListener(buffer[key2][0], _attList[key1][2].preExecMethods, false);
             }
-            bfResult.push([bf, _attList[key1][1]]);
         }
         _body.addEventListener('click', function(event){
-            for (var key3 in bfResult) {
-                bf = bfResult[key3][0];
-                for (var key4 in bf) {
-                    if (bf[key4][1](event.target)===true) {
+            for (var key3 in _attList) {
+                buffer = _attList[key3][0];
+                for (var key4 in buffer) {
+                    if (buffer[key4][1](event.target)===true) {
                         event.preventDefault();
-                        var csEvent = new CustomEvent(bf[key4][0], bfResult[key3][1](event.target));
+                        var csEvent = new CustomEvent(buffer[key4][0], _attList[key3][1](event.target, _attList[key3][2]));
                         event.currentTarget.dispatchEvent(csEvent);
                     }
                 }
