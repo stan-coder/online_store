@@ -21,7 +21,6 @@ class EntityController extends controllerManager
      * Add like
      */
     public function like() {
-        //sleep(2);
         $this->validAjaxData(['entityId', 'reject'], function($t){
             $entityId = $t->getData(0);
             if (!ctype_digit($entityId) || (int)$entityId < 1) return true;

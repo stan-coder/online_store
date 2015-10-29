@@ -5,7 +5,8 @@ class groupsController extends controllerManager
     public static $url = [
         'sheet' => [
             'url' => '~^/group/\d{14}$~m',
-            'js' => ['jquery-1.11.3.min.js', 'control.js', 'groupTabs.js', 'sheet.js', 'sha512.min.js', 'entity.js', 'eventManager.js']
+            //'js' => ['jquery-1.11.3.min.js', 'control.js', 'groupTabs.js', 'sheet.js', 'sha512.min.js', 'entity.js', 'eventManager.js']
+            'js' => ['jquery-1.11.3.min.js', 'sha512.min.js', '/public/js/mvc/views/baseView.js', '/public/js/mvc/origin.js']
         ],
         'getUsers' => [
             'url' => '/groups/ajax/getUsers',

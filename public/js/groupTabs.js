@@ -119,7 +119,7 @@ $(document).ready(function(){
             div.id = 'tab'+id;
             return div;
         };
-    };
+    }
 
     Tabs.prototype = new Control();
     (new Tabs()).init();
