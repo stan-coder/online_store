@@ -62,7 +62,7 @@ class groupsController extends controllerManager
         $this->sheet = array_values($this->sheet);
         $this->bindEntitiesAndComments();
         array_walk_recursive($this->sheet, function(&$el, $key){
-            if ($key == 'created') $el = date('d F Y h:i', strtotime($el));
+            if (substr_count($key, 'created')) $el = date('d F Y h:i', strtotime($el));
         });
         set(['groupId' => $group['entity_id'],
             'hash' => $hash = strtoupper(substr(hash('sha512', $this->model('customFunction')->getRandomString().$this->session()->get('userSessionHash')), 0, 100)),
@@ -77,7 +77,7 @@ class groupsController extends controllerManager
     private function bindEntitiesAndComments() {
         $cm = $this->comments;
         $this->sheet = array_map(function($el) use($cm){
-            $entId = (is_numeric($minKey = min(array_keys($el))) ? $el[$minKey]['entity_post_id'] : $el['entity_id']);
+            $entId = (is_numeric($minKey = min(array_keys($el))) ? $el[$minKey]['entity_id'] : $el['entity_id']);
             if (isset($cm[$entId])) {
                 $el['commentsArray'] = $cm[$entId];
             }
@@ -149,8 +149,8 @@ class groupsController extends controllerManager
         $fr = current($filtered);
         $rp = [];
         $rp[] = [
-            'description' => $fr['descr'],
-            'entity_post_id' => $fr['ent_sheet_id'],
+            'content' => $fr['descr'],
+            'entity_id' => $fr['ent_sheet_id'],
             'created' => $fr['created']];
         /**
          * Nested rePost
@@ -172,11 +172,11 @@ class groupsController extends controllerManager
                 return isset($el['original_parent_en_id']);
             });
             $preOrigEnt = array_shift($preOrigEnt);
-            if (!($origEnt = $this->model('sheet')->getEntitiesListByType($preOrigEnt['original_entity_sheet_type'], [$preOrigEnt['original_parent_en_id']], '?'))) {
+            if (!($origEnt = $this->model('sheet')->getEntitiesListByType($preOrigEnt['original_entity_sheet_type'], [$preOrigEnt['original_parent_en_id']], '?', 1))) {
                 exit('Here show error');
             }
             $origEnt = end($origEnt);
-            $de = ['original_entity_sheet_type', 'source_entity_id', 'source_uid', 'source_info', 'original_parent_en_id'];
+            $de = ['original_entity_sheet_type', 'original_entity_created', 'source_entity_type', 'source_uid', 'source_info', 'original_parent_en_id'];
             array_walk($rp, function(&$el) use($de, &$origEnt){
                 if (isset($el[$de[0]])) {
                     foreach ($de as $e) {
@@ -199,11 +199,12 @@ class groupsController extends controllerManager
                 exit('Here show error');
             }
             $origEnt = end($origEnt);
-            $de = ['source_info', 'source_uid', 'source_entity_id', 'original_entity_sheet_type_single', 'original_parent_en_id_single'];
+            $de = ['source_info', 'source_uid', 'source_entity_type', 'original_entity_created_single', 'original_entity_sheet_type_single', 'original_parent_en_id_single'];
             foreach ($de as $el) {
                 $origEnt[$el] = $fr[$el];
                 unset($fr[$el]);
             }
+            unset($origEnt['original_parent_en_id_single']);
             $this->sheet[$fr['created']] = [current($rp), $origEnt];
         }
     }

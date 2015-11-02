@@ -24,7 +24,8 @@ function sheetController() {
     /**
      * Method creates object that helps to retrieve correct data from received json
      */
-    this.prepareAccessDataObject = function(){
+    this.prepareData = function(data){
+        _data = data || _data;
         var initArr = [[
             ['comments', 'likes', 'reviews', 'reposts', 'total_comments'],
             function(key){
@@ -46,13 +47,11 @@ function sheetController() {
                 function(key){
                     return (typeof _data[key] != 'undefined' && _data[key].constructor===Array ? _data[key] : []);
                 }],
-            [['other_owner_en_u_id'],
+            [['u_initials'],
                 function(key){
-                    var ba = [key, 'u_initials', 'u_uid'];
-                    for (var k in ba) {
-                        if (typeof _data[ba[k]] == 'undefined') return null;
-                    }
-                    return '<a href="/user/'+_data[ba[2]]+'">'+_data[ba[1]]+'</a>';
+                    var ba = [key, 'u_uid'];
+                    for (var k in ba) if (typeof _data[ba[k]] == 'undefined') return null;
+                    return '<a href="/user/'+_data[ba[1]]+'">'+_data[ba[0]]+'</a>';
                 }]];
 
         _prepData = {
@@ -69,13 +68,14 @@ function sheetController() {
                 _prepData[buffer[key2]] = key1; // comments = 0; ...
             }
         }
+        return _prepData;
     };
 
     /**
      * Setting publications
      */
     this.setPublication = function () {
-        if (Object.keys(_prepData).length == 0) this.prepareAccessDataObject();
+        if (Object.keys(_prepData).length == 0) this.prepareData();
         this.view.renderPublication(_prepData);
     };
 
@@ -83,6 +83,31 @@ function sheetController() {
      * Setting rePosts
      */
     this.setRePost = function (data) {
-        console.log(data);
+        var elementsCount = data.constructor == Object ? Object.keys(data).length-1 : data.length;
+        var origEnt = data[elementsCount-1];
+        origEnt.content = this.prepareData({content: origEnt.content}).get('content');
+        for (var key in origEnt) {
+            if (key.indexOf('_single')>=0) {
+                var bf = origEnt[key];
+                origEnt[key.slice(0, -7)] = bf;
+                delete origEnt[key];
+            }
+        }
+        this.view.renderRePost(this.prepareData(data[0]), origEnt, this.getRePostedElements(data, elementsCount));
+    };
+
+    /**
+     * Get elements of rePost data that contains comments other users
+     */
+    this.getRePostedElements = function(data, elementsCount) {
+        if (!$.isArray(data)) {
+            var bf = [];
+            for (var key in data) {
+                if ($.isNumeric(key)) bf.push(data[key]);
+            }
+            data = bf;
+        }
+        if (elementsCount===2) return [];
+        return data.slice(1, -1);
     };
 }

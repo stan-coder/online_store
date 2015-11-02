@@ -439,7 +439,7 @@ CREATE TABLE groups_admins (
 ) ENGINE=InnoDB;
 
 create view `packed_general_entities` as
-(select u.entity_id, u.uid, concat(first_name, '|', surname) as info, 2 as e_type from users u having info is not null)
+(select u.entity_id, u.uid, concat(first_name, ' ', surname) as info, 2 as e_type from users u having info is not null)
 union all
 (select g.entity_id, g.uid, g.title info, 1 as e_type from groups g);
 

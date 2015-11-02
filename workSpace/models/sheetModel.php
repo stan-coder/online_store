@@ -10,7 +10,7 @@ class SheetModel extends modelManager
           t1.e_type entity_type,
           t1.created created,
           l2.likes_count likes,
-          notown.entity_user_id other_owner_en_u_id,
+          -- notown.entity_user_id other_owner_en_u_id,
           -- u.first_name u_f_name,
           -- u.surname u_surname,
           concat(u.first_name, ' ', u.surname) as u_initials,
@@ -53,12 +53,23 @@ class SheetModel extends modelManager
     }
 
     public function getEntitiesListByType($typeId, $listId, $qu) {
-        return call_user_func_array([$this, 'get'.$this->getEntitiesByIndex($typeId-1)], [$listId, $qu]);
+        $args = [$listId, $qu];
+        if (count(func_get_args())===4) array_push($args, 1);
+        return call_user_func_array([$this, 'get'.$this->getEntitiesByIndex($typeId-1)], $args);
     }
 
     public function getPublications($listId, $qu) {
-        $sql = "select entity_sheet_id, content from publications where entity_sheet_id in ({$qu})";
-        return $this->replaceKeys($this->db()->select($sql, $listId), 'entity_sheet_id');
+        $sql[0] = "select entity_sheet_id, content from publications where entity_sheet_id in ({$qu})";
+        $sql[1] = "select p.entity_sheet_id entity_sheet_id, p.content content, concat(u.first_name, ' ', u.surname) u_initials, u.uid u_uid from publications p
+            left join not_owners_created_entities nown on p.entity_sheet_id = nown.entity_id
+            left join users u on nown.entity_user_id = u.entity_id
+            where entity_sheet_id in ({$qu})";
+        $res = $this->replaceKeys($this->db()->select($sql[(count(func_get_args())===3?1:0)], $listId), 'entity_sheet_id');
+        if (count($res)===1) {
+            $key = current(array_keys($res));
+            $res[$key] = array_filter($res[$key]);
+        }
+        return $res;
     }
 
     public function getReposts($listId, $qu) {
@@ -67,6 +78,8 @@ class SheetModel extends modelManager
           r1.description descr,
           r1.created created,
           r2.entity_sheet_id en_sheet_id_sub_rp,
+          -- DATE_FORMAT(r2.created, '%d %M %Y %H:%i') en_created_sub_rp,
+          r2.created en_created_sub_rp,
           r2.description descr_sub_rp,
           owr.entity_owner_id en_owner_id_sub_rp,
           t3.uid owner_uid,
@@ -74,9 +87,14 @@ class SheetModel extends modelManager
           t3.e_type owner_type,
           t1.parent_id original_parent_en_id_single,
           t1.type_entity_id original_entity_sheet_type_single, -- from entities_sheet.type_entity_id
+          -- DATE_FORMAT(t1.created, '%d %M %Y %H:%i') original_entity_created_single,
+              t1.created original_entity_created_single,
           e4.parent_id original_parent_en_id, -- first publication or other entity
           esh1.type_entity_id original_entity_sheet_type, --  from entities_sheet.type_entity_id
-          t4.entity_id source_entity_id,
+          -- DATE_FORMAT(esh1.created, '%d %M %Y %H:%i') original_entity_created,
+              esh1.created original_entity_created,
+          t4.e_type source_entity_type,
+          -- t4.entity_id source_entity_id,
           t4.uid source_uid,
           t4.info source_info
         from reposts r1
@@ -84,7 +102,7 @@ class SheetModel extends modelManager
           left join reposts r2 on rpt1.entity_parent_id = r2.entity_sheet_id
           left join owners_reposts owr on owr.entity_repost_id = r2.entity_sheet_id
           left join
-            (select e2.id id, e2.parent_id parent_id, esh.type_entity_id from entities e2 inner join entities_sheet esh on e2.parent_id = esh.entity_id) t1 on
+            (select e2.id id, e2.parent_id parent_id, esh.type_entity_id, esh.created from entities e2 inner join entities_sheet esh on e2.parent_id = esh.entity_id) t1 on
               t1.id = r1.entity_sheet_id and rpt1.entity_repost_id is null
           left join packed_general_entities t3 on owr.entity_owner_id = t3.entity_id
           left join

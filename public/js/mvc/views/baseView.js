@@ -43,6 +43,7 @@ function baseView() {
             return this;
         };
         this.append = function(child){
+            if (child instanceof jQuery) child = child.get(0);
             _element.appendChild(child.constructor == this.constructor ? child.get() : child);
             return this;
         };

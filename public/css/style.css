@@ -111,13 +111,30 @@ body{
     cursor: pointer;
 }
 
-.publication{
+.publication, .rePost{
     width: 500px;
     height: auto;
-    max-height: 400px;
     border: 1px solid #C9C9C9;
     border-radius: 3px 3px 0 0;
     margin-bottom: 20px;
+}
+
+.customCommentWhileRePost, .rePostPagination{
+    border-bottom: 1px solid #C9C9C9;
+}
+
+.descriptionOriginalEntity, .customCommentWhileRePost div{
+    margin-top: 11px;
+}
+
+.descriptionOriginalEntity .created, .customCommentWhileRePost span{
+    font-size: 12px;
+    margin-top: 2px;
+    display: block;
+}
+
+.descriptionOriginalEntity span:first-child {
+    border-bottom: 1px dotted #333;
 }
 
 .comments .add{
@@ -129,6 +146,14 @@ body{
     width: 484px;
     height: 50px;
     border: 1px solid #E4E4E4;;
+}
+
+div.commentByGroupAdmin {
+    margin-bottom: 12px;
+}
+
+div.commentByGroupAdmin span{
+    border-bottom: 1px dotted #333;
 }
 
 .addNewEntity{
@@ -175,7 +200,7 @@ body{
     margin: 10px 0 0 10px;
 }
 
-.publication hr{
+.publication hr, .rePost hr{
     width: 100%;
     height: 1px;
     background: #C9C9C9;
@@ -272,6 +297,16 @@ p.totalComments{
     max-width: 24px;
     position: relative;
 }
+
+.rePostPagination span.hint{
+    position: absolute;
+    margin: 4px 0 0 10px;
+}
+
+.rePostPagination a{
+    cursor: pointer;
+}
+
 .extra a{
     cursor: pointer;
     color: black;
@@ -336,6 +371,6 @@ p.totalComments{
     top: -153px;
 }
 
-.publication .content a{
+.publication .content a, .rePost .content a{
     color: #F44336;
 }

@@ -32,7 +32,7 @@ $(document).ready(function(){
             return 'as';
         };
 
-        this.prepareAccessDataObject = function(){
+        this.prepareData = function(){
             var initArr = [[
                 ['comments', 'likes', 'reviews', 'reposts', 'total_comments'],
                 function(key){
@@ -84,7 +84,7 @@ $(document).ready(function(){
          * @param data
          */
         this.renderPublication = function(data){
-            if (Object.keys(_prepData).length == 0) this.prepareAccessDataObject();
+            if (Object.keys(_prepData).length == 0) this.prepareData();
             var ext = {};
             ext.pCreated = this.createElement('p', {'class':'created'}).text('Created: ').append(this.createElement('span').text(_prepData.get('created')));
             ext.totalComments = this.createElement('p', {'class':'abs totalComments'}).text('Total count of comments: ').append(this.createElement('span').text(_prepData.get('total_comments')));
