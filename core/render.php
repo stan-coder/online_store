@@ -32,6 +32,7 @@ class Render
                 }
                 self::generate404Error();
             }
+            Config::$ajaxMode = true;
             header('Content-Type: application/json');
         } else {
             header('Content-Type: text/html; charset=utf-8');

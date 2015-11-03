@@ -19,6 +19,14 @@ function sheetController() {
             self['set'+entity](_data);
         }
         (new entityController()).index(this);
+        var io, event;
+        for (key in self) {
+            io = key.indexOf('SheetEvent');
+            if (io > 0 && key.substr(io+10) && self[key].constructor===Function) {
+                event = key.substr(io+10).toLowerCase();
+                self.view[key.substr(0, io)].on(event, self, self[key]);
+            }
+        }
     };
 
     /**
@@ -41,7 +49,7 @@ function sheetController() {
                 }],
             [['content'],
                 function(key){
-                    return (typeof _data[key] == 'string' && _data[key].length > 0 ? _data[key].replace(/\r\n/g, '<br/>') : '');
+                    return (typeof _data[key] == 'string' && _data[key].length > 0 ? _data[key].replace(/(\r)?\n/g, '<br/>') : '');
                 }],
             [['commentsArray'],
                 function(key){
@@ -51,7 +59,7 @@ function sheetController() {
                 function(key){
                     var ba = [key, 'u_uid'];
                     for (var k in ba) if (typeof _data[ba[k]] == 'undefined') return null;
-                    return '<a href="/user/'+_data[ba[1]]+'">'+_data[ba[0]]+'</a>';
+                    return '<a href="/profile/'+_data[ba[1]]+'">'+_data[ba[0]]+'</a>';
                 }]];
 
         _prepData = {
@@ -109,5 +117,63 @@ function sheetController() {
         }
         if (elementsCount===2) return [];
         return data.slice(1, -1);
+    };
+
+    /**
+     * Event adding new record (i.e. so called "entity")
+     */
+    this.aAddRecordSheetEventClick = function (e) {
+        self.view.divAddNEntWrapper.toggle('fast', function () {
+            var ta = self.view.textAreaRecord;
+            if ($(e.target).parent().next().css('display')=='block') $(ta).focus();
+            else $(ta).val('');
+        });
+    };
+
+    /**
+     * Click button to public new record
+     */
+    this.buttonPublicRecordSheetEventClick = function (e) {
+        var ta = self.view.textAreaRecord;
+        if (ta.val().length > 0) {
+            self.view.blockAddRecord(true);
+            self.originInstance.additionAjaxComplete(function(){
+                self.view.blockAddRecord(false);
+            });
+            self.originInstance.getDeferred().done(function (data) {
+                self.view.renderPublication(
+                    self.prepareData({
+                        content: self.htmlSpecialChars(self.stripTags(ta.val())),
+                        created: data.created,
+                        entity_id: data.pId
+                }), true);
+            });
+            var _data = {content:ta.val()};
+            self.model.addPublication(_data);
+        }
+        ta.focus();
+    };
+
+    /**
+     * Strip any tag
+     * @param input
+     * @returns {XML|string}
+     */
+    this.stripTags = function (input) {
+        var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi, commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
+        return input.replace(commentsAndPhpTags, '').replace(tags, '');
+    };
+
+    /**
+     * Convert some symbol to html representation
+     * @param string
+     * @returns {*}
+     */
+    this.htmlSpecialChars = function (string) {
+        var stack = {'&':'&amp;', '"':'&quot;', "'":'&#039;', '<':'&lt;', '>':'&gt;'};
+        for (var symbol in stack) {
+            string = string.replace((new RegExp(symbol, 'g')), stack[symbol]);
+        }
+        return string;
     };
 }

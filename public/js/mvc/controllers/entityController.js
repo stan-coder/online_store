@@ -40,11 +40,6 @@ function entityController() {
             _data.reject = true;
         }
         self.originInstance.getDeferred().done(function (data){
-            if (data.success !== true) {
-                var message = (typeof data.message == 'string' ? data.message : 'Unknown error');
-                _sheetView.showAlert(message);
-                return false;
-            }
             var lCn = $(e.detail.target).siblings('.likesCount').find('a');
             var cn = parseInt(lCn.text());
             var params = (_data.hasOwnProperty('reject') ? ['addLike', cn-1] : ['isLiked', cn+1]);

@@ -8,15 +8,17 @@
 class controllerManager extends baseManager
 {
     public static $variables = array(), $js = array(), $css = array(), $title = '', $isAjax = false, $noView = false, $layout = 'general', $matchUrl = null, $view = null, $formFieldsError = [], $isAuthorized = false;
-    protected $post = [];
+    protected $post = [], $validData = [], $data = [];
 
     /**
      * Check authorization
      */
-    public function __construct($rInfo) {
-        $distinctUrl = in_array($rInfo['function'], ['signIn', 'registration']);
-        self::$isAuthorized = $credential = $this->model('auth')->checkCredential();
-        if (get_called_class() == 'UserController' && (!$credential && !$distinctUrl || $credential && $distinctUrl)) $this->redirect('/');
+    public function __construct($rInfo = null) {
+        if (!empty($rInfo)) {
+            $distinctUrl = in_array($rInfo['function'], ['signIn', 'registration']);
+            self::$isAuthorized = $credential = $this->model('auth')->checkCredential();
+            if (get_called_class() == 'UserController' && (!$credential && !$distinctUrl || $credential && $distinctUrl)) $this->redirect('/');
+        }
     }
 
     /**
@@ -240,11 +242,16 @@ class controllerManager extends baseManager
      * @param $validate
      */
     protected function validAjaxData($data, $validate) {
-        if (count($hs = array_keys(array_filter(array_flip($_POST), function($e){
-                return in_array($e, ['hash', 'salt']);
-            }))) !== 2 || substr(hash('sha512', $this->session()->get('ajaxHash') . $hs[1]), 0, 50) !== (string)$hs[0] ) {
+        if (count($post = array_keys(array_filter(array_flip($_POST), function($e){
+                return in_array($e, ['token', 'salt', 'sheetEntityId']);
+            }))) !== 3
+            || !ctype_digit((string)$post[2])
+            || !($sheetEntityInfo = $this->model('sheet')->checkExistingSheetEntity($post[2], 1))
+            || $this->model('customFunction')->getHashChunkUpperCase($this->session()->get('userSessionHash').implode($sheetEntityInfo).$post[1]) !== $post[0]
+        ) {
             $this->getJson(0, 0, 'Incorrect request');
         }
+        $this->data = ['sheetEntityInfo' => $sheetEntityInfo, 'sheetEntityId' => $post[2]];
         if (!is_array($this->validData = $data) || !is_callable($validate)) {
             $this->getJson(0, 0, Config::$debug ? 'The validating data contains incorrect value' : 'Unknown error');
         }
@@ -270,5 +277,15 @@ class controllerManager extends baseManager
      */
     protected function getData($num) {
         return isset($this->validData[$num]) && isset($_POST[$this->validData[$num]]) ? $_POST[$this->validData[$num]] : null;
+    }
+
+    /**
+     * Include file-controller and return initialized exemplar
+     * @param $name
+     * @return ReflectionClass
+     */
+    protected function getController($name) {
+        require_once(WORK_SPACE_FOLDER_PATH . 'controllers' . DS . ($name .= 'Controller') . '.php');
+        return (new ReflectionClass($name))->newInstance();
     }
 }

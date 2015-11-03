@@ -2,7 +2,7 @@
 
 class AuthModel extends modelManager
 {
-    public function authorization($userId, $userEntityId, $email, $expire) {
+    public function authorization($userId, $userEntityId, $userInitials, $email, $expire) {
 
         $sql = "call insert_session_and_if_exists_remove_obsolete(?, ?, ?);";
         $sesName = $this->model('session')->getName();
@@ -17,6 +17,7 @@ class AuthModel extends modelManager
             $this->model('session')->set('userId', $userId);
             $this->model('session')->set('userEntityId', $userEntityId);
             $this->model('session')->set('userSessionHash', $hash);
+            $this->model('session')->set('userInitials', $userInitials);
         }
         return $isInserted;
     }

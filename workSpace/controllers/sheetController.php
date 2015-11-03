@@ -1,37 +1,28 @@
 <?php
 
-class groupsController extends controllerManager
+class sheetController extends controllerManager
 {
     public static $url = [
-        'sheet' => [
-            'url' => '~^/group/\d{14}$~m',
-            //'js' => ['jquery-1.11.3.min.js', 'control.js', 'groupTabs.js', 'sheet.js', 'sha512.min.js', 'entity.js', 'eventManager.js']
-            'js' => ['jquery-1.11.3.min.js', 'sha512.min.js', '/public/js/mvc/views/baseView.js', '/public/js/mvc/origin.js']
-        ],
-        'getUsers' => [
-            'url' => '/groups/ajax/getUsers',
+        'addPublication' => [
+            'url' => '/sheet/ajax/addPublication',
             'ajax' => true
-        ],
-        'getInfo' =>[
-            'url' => '/groups/ajax/getInfo',
-            'ajax' => true
-        ]
-    ];
-    private $validData = [],
-            $sheet = [],
+        ]];
+
+    private $sheet = [],
             $comments = [];
 
     /**
-     * Group sheet
+     * Start action
+     * @param $entity
      */
-    public function sheet() {
+    public function start($entity) {
         $url = explode('/', implode($this->getMatchUrl()));
-        if (!($group = $this->model('groups')->checkExistingGroup($groupId = end($url)))) {
-            $this->setView('groupNotFound');
+        if (!($_entity = $this->model('sheet')->checkExistingSheetEntity(end($url)))) {
+            $this->errorLoading($entity);
             return;
         }
-        if (($entities = $this->model('sheet')->getListEntities($group['entity_id'], $this->session()->get('userEntityId'))) === false) {
-            $this->setView('crushWhileLoadingGroup');
+        if (($entities = $this->model('sheet')->getListEntities($_entity['entity_id'], $this->session()->get('userEntityId'))) === false) {
+            $this->errorLoading($entity, 1);
             return;
         }
         $types = array_unique(array_column($entities, 'entity_type'));
@@ -64,11 +55,31 @@ class groupsController extends controllerManager
         array_walk_recursive($this->sheet, function(&$el, $key){
             if (substr_count($key, 'created')) $el = date('d F Y h:i', strtotime($el));
         });
-        set(['groupId' => $group['entity_id'],
-            'hash' => $hash = strtoupper(substr(hash('sha512', $this->model('customFunction')->getRandomString().$this->session()->get('userSessionHash')), 0, 100)),
+        set(['sheetEntityId' => $_entity['entity_id'],
             'jsonSheet' => json_encode($this->sheet)]);
-        $this->setTitle($group['title']);
-        $this->session()->set('ajaxHash', $hash);
+        $this->setTitle(ucfirst($entity).': '.$_entity['info']);
+        return $_entity;
+    }
+
+    /**
+     * Error loading
+     * @param $entity
+     * @param int $template
+     */
+    protected function errorLoading($entity, $template = 0) {
+        $n = !$template ? [' not found', 'entityNotFound'] : [' cannot be loaded', 'crushWhileLoadingEntity'];
+        set('entity', $entity);
+        $this->setTitle(ucfirst($entity).$n[0]);
+        $this->setView($n[1]);
+    }
+
+    /**
+     * Set ajax token
+     * @param $entityInfo
+     */
+    public function setAjaxToken($entityInfo) {
+        set(['salt' => $salt = $this->model('customFunction')->getHashChunkUpperCase($this->model('customFunction')->getRandomString()),
+            'token' => $this->model('customFunction')->getHashChunkUpperCase($this->session()->get('userSessionHash').$entityInfo.$salt)]);
     }
 
     /**
@@ -210,21 +221,34 @@ class groupsController extends controllerManager
     }
 
     /**
-     * Get info about group
+     * Add publication
+     * 0 - user sheet, 1 - group
      */
-    public function getInfo() {
-        $this->validAjaxData(['groupId'], function($t){
-            return !ctype_digit($t->getData(0)) || (int)$t->getData(0) < 1;
+    public function addPublication() {
+        /**
+         * Добавить проверку на авторизацию
+         */
+        $uEntId = $this->session()->get('userEntityId');
+        $this->validAjaxData(['content'], function($t){
+            return empty($t->getData(0));
         });
-        $groupInfo = $this->model('groups')->getInitialInfo($_POST['groupId'], $this->session()->get('userEntityId'));
-        $rt = !$groupInfo ? [0, 0, 'Group not found'] : [1, $groupInfo, 0];
-        $this->getJson($rt[0], $rt[1], $rt[2]);
-    }
 
-    /**
-     * Get list of users belongs to group
-     */
-    public function getUsers() {
-        $this->getJson(1, ['name', 'root']);
+        $sei = $this->data['sheetEntityInfo'];
+        $errorMessage = 'You have not permission to add publication in this group';
+        $notOwner = true;
+
+        if ((int)$sei['e_type'] === 2) {
+            if ($uEntId == $sei['entity_id']) $notOwner = false;
+            elseif (!$this->model('profile')->checkFriendship($sei['entity_id'], $this->data['sheetEntityId'])) $this->getJson(0, 0, $errorMessage);
+        } else {
+            $res = $this->model('sheet')->checkPermissionForGroup($uEntId, $sei['entity_id']);
+            if (!is_array($res) || count($res) < 1 || empty(array_filter($res))) $this->getJson(0, 0, $errorMessage);
+            elseif (implode($res) == '10') $notOwner = false;
+        }
+
+        $res = $this->model('sheet')->addPublication($this->data['sheetEntityId'], htmlspecialchars(strip_tags($this->getData(0))), $notOwner?/*$uEntId*/1292:false);
+        call_user_func_array([$this, 'getJson'],
+            !is_numeric($res['pId']) || empty($res['created']) ? [0, 0, 'Publication not added'] :
+            [1, $res, 0]);
     }
 }

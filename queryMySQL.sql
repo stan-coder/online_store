@@ -44,6 +44,14 @@ create table users (
   last_visit timestamp default 0
 ) CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE=INNODB;
 
+create table friends (
+  entity_user_id1 int(11) NOT NULL,
+  entity_user_id2 int(11) NOT NULL,
+  primary key (entity_user_id1, entity_user_id2),
+  foreign key (entity_user_id1) references users (entity_id) on update cascade on delete cascade,
+  foreign key (entity_user_id2) references users (entity_id) on update cascade on delete cascade
+) CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE=INNODB;
+
 create table attempts (
   id int unsigned not null primary key auto_increment,
   unique_identifier varchar(15) not null unique,

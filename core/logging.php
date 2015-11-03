@@ -71,8 +71,11 @@ class Logging
         (isset($_FILES) && count($_FILES) > 0 ? 'POST='.self::convertArrayToString($_FILES) . "\r\n" : '')."\r\n\r\n";
 
         error_log($textError, 3, DIR.'recording'.DS.'errors.log');
-        require_once(CORE . 'basicTemplates' . DS . 'productionCrashMessage.php');
-        exit();
+        if (!Config::$ajaxMode) {
+            require_once(CORE . 'basicTemplates' . DS . 'productionCrashMessage.php');
+            exit();
+        }
+        exit(json_encode(['success' => false, 'message' => 'Unknown error']));
     }
 
     /**

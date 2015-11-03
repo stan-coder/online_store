@@ -13,7 +13,7 @@ class UserModel extends modelManager
     }
 
     public function getInitialInfoByEmail($email) {
-        $sql = 'select `id`, `password`, `salt`, `is_active`, `is_confirmed`, `entity_id` from `users` where `email` = ? limit 1';
+        $sql = "select `id`, `password`, `salt`, `is_active`, `is_confirmed`, `entity_id`, concat(`first_name`, ' ', `surname`) as initials from `users` where `email` = ? limit 1";
         return $this->db()->selectOne($sql, [$email]);
     }
 }

@@ -25,7 +25,7 @@ $(document).ready(function(){
                 }).show();
                 return;
             }
-            var url = '/groups/ajax/get' + upId;
+            var url = '/group/ajax/get' + upId;
             $.ajax({
                 url: url,
                 data: {

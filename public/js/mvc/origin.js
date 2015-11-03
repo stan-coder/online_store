@@ -2,7 +2,7 @@
 $(document).ready(function () {
     function Origin() {
         this.url = [
-            [/\/group\/\d{14}$/g, {
+            [/\/(group)|(profile)\/\d{14}$/g, {
                 models: ['sheet', 'entity'],
                 controllers: ['sheet', 'entity', 'event'],
                 views: ['sheet']
@@ -12,7 +12,6 @@ $(document).ready(function () {
         var _sCounter = 0;
         var _selectedControllers;
         var _indexController;
-        var _hash = null;
         var _baseView;
 
         /**
@@ -82,7 +81,6 @@ $(document).ready(function () {
          * Init control class
          */
         this.initAjax = function(){
-            _hash = $('#hash').val();
             $.ajaxSetup({
                 type: 'POST',
                 dataType: 'json',
@@ -90,35 +88,29 @@ $(document).ready(function () {
                 timeout: 3000,
                 async: true,
                 beforeSend: function(jqxhr, settings){
-                    var hs = this.getSaltedHash();
-                    settings.data += '&hash='+hs[0]+'&salt='+hs[1];
+                    settings.data += '&token='+$('#token').val()+'&salt='+$('#salt').val()+'&sheetEntityId='+$('#sheetEntityId').val();
                     if (self.hasOwnProperty('ajaxExists')) jqxhr.abort();
                     self.ajaxExists = true;
                 },
                 success: function(data){
-                    self.getDeferred().resolve(data);
+                    if (data.success !== true) {
+                        _baseView.showAlert((typeof data.message == 'string' ? data.message : 'Unknown error'));
+                        return false;
+                    }
+                    self.getDeferred().resolve(('data' in data ? data.data : {}));
                 },
                 complete: function(){
                     delete self.ajaxExists;
                     delete self.deferred;
+                    if ('ajaxComplete' in self) {
+                        self.ajaxComplete();
+                        delete self.ajaxComplete;
+                    }
                 },
                 error: function(){
                     _baseView.showAlert('Unknown error was occured');
                 }
             });
-        };
-
-        /**
-         * Get array contains salted hash and appropriate salt
-         * @returns {*[]}
-         */
-        this.getSaltedHash = function(){
-            var salt = (new Date()).getTime();
-            for (var h=0; h<10; h++) {
-                salt += Math.random().toString();
-            }
-            salt = sha512(salt).substr(0, 20);
-            return [sha512(_hash + salt).substr(0, 50), salt];
         };
 
         /**
@@ -131,6 +123,10 @@ $(document).ready(function () {
             }
             return self.deferred;
         };
+
+        this.additionAjaxComplete = function(handler) {
+            self.ajaxComplete = handler;
+        }
     }
 
     var origin = new Origin();

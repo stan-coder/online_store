@@ -17,9 +17,7 @@ class Cache
             if (!class_exists(ucfirst($classController = ucfirst(substr($controller, 0, -4))))) {
                 crash('The controller "'.$controller.'" does not have necessary class');
             }
-            if (!property_exists($classController, 'url')) {
-                crash('The property "$url" does not exists in "' . $classController . '" controller');
-            }
+            if (!property_exists($classController, 'url')) continue;
             /**
              * Loop across whole actions
              */

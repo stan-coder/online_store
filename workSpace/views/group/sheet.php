@@ -5,16 +5,18 @@
         <li role="presentation" id="users"><a>Users</a></li>
         <li role="presentation" id="newUsers"><a>New users</a></li>
     </ul>
-    <div style="width: 100%; height: auto; border: 1px solid #ddd; border-top: none; padding: 30px 20px 30px 20px" id="surface">
+    <div id="surface">
+        <?php if (!empty(controllerManager::$variables['addRecord'])) : ?>
         <p id="addRecord"><a>Add new record</a></p>
-        <div id="addNEntWrapper" style="display: none">
+        <div id="addNEntWrapper">
             <div class="addNewEntity">
-                <textarea id=""></textarea>
+                <textarea></textarea>
             </div>
             <div style="margin-bottom: 13px;">
-                <button type="button" class="btn btn-default">Public</button>
+                <button type="button" id="publicRecord" class="btn btn-default">Public</button>
             </div>
         </div>
+        <?php endif; ?>
 
         <div class="rePost entity"  style="display: none;">
             <div class="rePostPagination content">
@@ -99,7 +101,8 @@
         </div>-->
 
     </div>
-    <input type="hidden" id="groupId" value="{groupId}"/>
-    <input type="hidden" id="hash" value="{hash}"/>
+    <input type="hidden" id="sheetEntityId" value="{sheetEntityId}"/>
+    <input type="hidden" id="token" value="{token}"/>
+    <input type="hidden" id="salt" value="{salt}"/>
     <input type='hidden' id='jsonSheet' value='{jsonSheet}'>
 </div>

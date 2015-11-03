@@ -86,7 +86,7 @@ class UserController extends controllerManager
                     return 0;
                 }],
                 ['There is a unknown reason that do not allow you sign in. Try later, please.', function($t) use($init){
-                    if (!$t->model('auth')->authorization($init['id'], $init['entity_id'], $t->post('email'), (int)$t->post('rememberMe'))) return 1;
+                    if (!$t->model('auth')->authorization($init['id'], $init['entity_id'], $init['initials'], $t->post('email'), (int)$t->post('rememberMe'))) return 1;
                     $this->redirect('/');
                 }]
             ];

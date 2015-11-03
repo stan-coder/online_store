@@ -21,6 +21,20 @@ class MainController extends controllerManager
     public function preController() {}
 
     public function index() {
+
+
+        require_once(CORE . 'pdo2.php');
+        db2::executeWithinTransaction(function(){
+            db2::exec('insert into temp (`temp`) value (?)', 'string-111');
+            db2::exec('insert into temp (`temz`) value (?)', 'string-333');
+        });
+        /*$res = db2::exec('select * from users where id <> ? limit 1', 100);
+        //$res = db2::exec('insert into temp (`temp`) value (?)', 'string-111');
+        echo '<pre>';
+        print_r($res);
+        echo '</pre>';*/
+
+        exit;
         set(array(
             'name' => 'asas',
             'surname' => 'Zavalishin99',

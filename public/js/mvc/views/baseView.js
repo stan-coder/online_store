@@ -6,7 +6,7 @@ function baseView() {
      * @param message
      */
     this.showAlert = function(message){
-        alert(message);
+        //alert(message);
     };
 
     /**

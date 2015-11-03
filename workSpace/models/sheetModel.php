@@ -4,15 +4,12 @@ class SheetModel extends modelManager
 {
     private $entitiesTypeList = ['publications', 'reposts'];
 
-    public function getListEntities($groupEntityId, $userEntityId){
+    public function getListEntities($entityId, $userEntityId){
         $sql = "select
           t1.e_id entity_id,
           t1.e_type entity_type,
           t1.created created,
           l2.likes_count likes,
-          -- notown.entity_user_id other_owner_en_u_id,
-          -- u.first_name u_f_name,
-          -- u.surname u_surname,
           concat(u.first_name, ' ', u.surname) as u_initials,
           u.uid u_uid,
           e2.reposts_count reposts,
@@ -22,14 +19,11 @@ class SheetModel extends modelManager
           if (l3.entity_id_user = :u_id, 1, null) liked_by_cur_user,
           e6.reposted_by_cur_user reposted_by_cur_user
         from (
-          ((select esh.entity_id e_id, esh.type_entity_id e_type, esh.created from groups g
-            inner join entities e1 on g.entity_id = e1.parent_id
+          ((select esh.entity_id e_id, esh.type_entity_id e_type, esh.created from entities e1
             inner join entities_sheet esh on e1.id = esh.entity_id
-          where g.entity_id = :g_id)
-            union
-            (select owr.entity_repost_id e_id, 2 as e_type, owr.created from groups g
-            inner join owners_reposts owr on g.entity_id = owr.entity_owner_id
-            where g.entity_id = :g_id)) as t1
+            where e1.parent_id = :e_id)
+              union
+            (select owr.entity_repost_id e_id, 2 as e_type, owr.created from owners_reposts owr where owr.entity_owner_id = :e_id)) as t1
           )
           left join (select entity_user_id, entity_id from ignored_entities_by_users ign where ign.entity_user_id = :u_id) as t2 on t1.e_id = t2.entity_id
           left join (select l1.entity_id, count(l1.entity_id) likes_count from likes l1 group by l1.entity_id) l2 on t1.e_id = l2.entity_id
@@ -48,8 +42,8 @@ class SheetModel extends modelManager
             inner join entities_sheet esh0 on e7.id = esh0.entity_id and esh0.type_entity_id = 2
             inner join owners_reposts owr5 on esh0.entity_id = owr5.entity_repost_id and entity_owner_id = :u_id) e6 on t1.e_id = e6.parent_id
         where t2.entity_id is null
-        order by t1.created, t1.e_id desc limit 8";
-        return $this->replaceKeys($this->db()->select($sql, [':g_id' => $groupEntityId, ':u_id' => $userEntityId]), 'entity_id');
+        order by t1.created, t1.e_id desc limit 10";
+        return $this->replaceKeys($this->db()->select($sql, [':e_id' => $entityId, ':u_id' => $userEntityId]), 'entity_id');
     }
 
     public function getEntitiesListByType($typeId, $listId, $qu) {
@@ -78,7 +72,6 @@ class SheetModel extends modelManager
           r1.description descr,
           r1.created created,
           r2.entity_sheet_id en_sheet_id_sub_rp,
-          -- DATE_FORMAT(r2.created, '%d %M %Y %H:%i') en_created_sub_rp,
           r2.created en_created_sub_rp,
           r2.description descr_sub_rp,
           owr.entity_owner_id en_owner_id_sub_rp,
@@ -87,14 +80,11 @@ class SheetModel extends modelManager
           t3.e_type owner_type,
           t1.parent_id original_parent_en_id_single,
           t1.type_entity_id original_entity_sheet_type_single, -- from entities_sheet.type_entity_id
-          -- DATE_FORMAT(t1.created, '%d %M %Y %H:%i') original_entity_created_single,
-              t1.created original_entity_created_single,
+          t1.created original_entity_created_single,
           e4.parent_id original_parent_en_id, -- first publication or other entity
           esh1.type_entity_id original_entity_sheet_type, --  from entities_sheet.type_entity_id
-          -- DATE_FORMAT(esh1.created, '%d %M %Y %H:%i') original_entity_created,
-              esh1.created original_entity_created,
+          esh1.created original_entity_created,
           t4.e_type source_entity_type,
-          -- t4.entity_id source_entity_id,
           t4.uid source_uid,
           t4.info source_info
         from reposts r1
@@ -132,7 +122,6 @@ class SheetModel extends modelManager
           c1.entity_user_id user_owner_en_id,
           c1.content content,
           c1.created created,
-          -- DATE_FORMAT(c1.created, '%d %b %Y %H:%i') created,
           count(c1.entity_id) as count_of_child_comments,
           l2.cn count_of_likes,
           if (l3.entity_id_user = :enUserId, 1, null) as is_liked_by_current_user,
@@ -150,5 +139,53 @@ class SheetModel extends modelManager
         group by c1.entity_id
         order by c1.created desc";
         return $this->db()->select($sql, $data);
+    }
+
+    public function addPublication($sheetEntityId, $content, $notOwner) {
+        try {
+            db::get()->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            db::get()->beginTransaction();
+
+            $sql = 'insert into entities (`parent_id`) value (?)';
+            $this->db()->exec($sql, [$sheetEntityId]);
+            $publicationId = db::get()->lastInsertId();
+            $created = $this->addEntityToEntitiesSheet($publicationId, 1);
+            $result = ['pId' => $publicationId, 'created' => date('d F Y h:i', strtotime($created))];
+            $sql = 'insert into publications (`entity_sheet_id`, `content`) value (?, ?)';
+            $this->db()->exec($sql, [$publicationId, $content]);
+
+            if ($notOwner) {
+                $sql = 'insert into not_owners_created_entities (`entity_user_id`, `entity_id`) value (?, ?)';
+                $this->db()->exec($sql, [$notOwner, $publicationId], true);
+                $result['suggestedBy'] = $this->model('session')->get('userInitials');
+            }
+        } catch (Exception $ex) {
+            db::get()->rollBack();
+            return false;
+        }
+        db::get()->commit();
+        return $result;
+    }
+
+    private function addEntityToEntitiesSheet($entityId, $typeEntityId) {
+        $sql = 'insert into entities_sheet (`entity_id`, `type_entity_id`, `created`) value (?, ?, ?)';
+        if (!((bool)$this->db()->exec($sql, [$entityId, $typeEntityId, $created = date('Y-m-d h:i:s')]))) {
+            return false;
+        }
+        return $created;
+    }
+
+    public function checkPermissionForGroup($userEntityId, $groupEntityId) {
+        $sql = 'select
+          (exists(select * from groups_admins ga where ga.entity_user_id = :u_id and ga.entity_group_id = :g_id))
+            is_admin,
+          (exists(select * from groups_users gu where gu.entity_user_id = :u_id and gu.entity_group_id = :g_id))
+            is_user';
+        return $this->db()->selectOne($sql, [':u_id' => $userEntityId, ':g_id' => $groupEntityId]);
+    }
+
+    public function checkExistingSheetEntity($searchCriteria, $findBy = 0) {
+        $sql = 'select pge.entity_id, pge.uid, pge.info, pge.e_type from packed_general_entities pge where pge.'.(!$findBy?'uid':'entity_id').' = ? limit 1';
+        return $this->db()->selectOne($sql, [$searchCriteria]);
     }
 }

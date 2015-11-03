@@ -12,4 +12,11 @@ function sheetModel() {
     this.getEntityTypes = function () {
         return ['Publication'];
     };
+
+    this.addPublication = function (data) {
+        $.ajax({
+            url: '/sheet/ajax/addPublication',
+            data: data
+        });
+    }
 }

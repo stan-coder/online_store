@@ -1,6 +1,6 @@
 <?php
 
-class GroupsModel extends modelManager
+class GroupModel extends modelManager
 {
     public function getInitialInfo($groupId, $userEntityId) {
         $sql = '
@@ -22,10 +22,5 @@ class GroupsModel extends modelManager
         limit 1';
 
         return $this->db()->selectOne($sql, [':groupId' => $groupId, ':userEntityId' => $userEntityId]);
-    }
-
-    public function checkExistingGroup($uid) {
-        $sql = 'select entity_id, title from groups where uid = ? limit 1';
-        return $this->db()->selectOne($sql, [$uid]);
     }
 }

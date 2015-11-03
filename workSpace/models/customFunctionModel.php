@@ -17,6 +17,10 @@ class CustomFunctionModel extends modelManager
         return $string;
     }
 
+    public function getHashChunkUpperCase($string, $length = 50) {
+        return strtoupper(substr(hash('sha512', $string), 0, $length));
+    }
+
     public function checkCorrectEmail($email) {
         return preg_match('~^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$~', $email);
     }

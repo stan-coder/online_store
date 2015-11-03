@@ -16,7 +16,8 @@ class Config {
         $dbPassword = 'root',
         $dbName = 'online_store',
         $dbCharset = 'utf8',
-        $secretKey = 'thisIsYourSecretKeyWhichDesirableBeingChanged';
+        $secretKey = 'thisIsYourSecretKeyWhichDesirableBeingChanged',
+        $ajaxMode = false;
 
     /**
      * List of files core
@@ -112,5 +113,9 @@ class Config {
         }
         require_once(CORE . 'basicTemplates' . DS . 'debugError.php');
         exit;
+    }
+
+    public static function crash($message) {
+        trigger_error($message, E_USER_ERROR);
     }
 }
