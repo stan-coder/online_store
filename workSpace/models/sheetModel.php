@@ -43,7 +43,7 @@ class SheetModel extends modelManager
             inner join owners_reposts owr5 on esh0.entity_id = owr5.entity_repost_id and entity_owner_id = :u_id) e6 on t1.e_id = e6.parent_id
         where t2.entity_id is null
         order by t1.created, t1.e_id desc limit 10";
-        return $this->replaceKeys($this->db()->select($sql, [':e_id' => $entityId, ':u_id' => $userEntityId]), 'entity_id');
+        return $this->replaceKeys(db::exec($sql, [':e_id' => $entityId, ':u_id' => $userEntityId]), 'entity_id');
     }
 
     public function getEntitiesListByType($typeId, $listId, $qu) {
@@ -58,7 +58,7 @@ class SheetModel extends modelManager
             left join not_owners_created_entities nown on p.entity_sheet_id = nown.entity_id
             left join users u on nown.entity_user_id = u.entity_id
             where entity_sheet_id in ({$qu})";
-        $res = $this->replaceKeys($this->db()->select($sql[(count(func_get_args())===3?1:0)], $listId), 'entity_sheet_id');
+        $res = db::exec($sql[(count(func_get_args())===3?1:0)], $listId);
         if (count($res)===1) {
             $key = current(array_keys($res));
             $res[$key] = array_filter($res[$key]);
@@ -104,7 +104,7 @@ class SheetModel extends modelManager
           left join entities_sheet esh1 on e4.parent_id = esh1.entity_id
         where r1.entity_sheet_id in ({$qu})
         order by r1.created desc";
-        return $this->db()->select($sql, $listId);
+        return db::exec($sql, $listId);
     }
 
     public function getEntitiesByIndex($index) {
@@ -112,7 +112,8 @@ class SheetModel extends modelManager
     }
 
     private function replaceKeys($array, $field) {
-        return is_array($array) && count($array) > 0 ? array_combine(array_column($array, $field), $array) : [];
+        $keys = array_keys($array);
+        return is_array($array) && ctype_digit((string)reset($keys)) ? array_combine(array_column($array, $field), $array) : [];
     }
 
     public function getCommentsByEntitiesList($placeholdersId, $data) {
@@ -138,40 +139,30 @@ class SheetModel extends modelManager
         where e1.parent_id in ({$placeholdersId}) and ign.entity_id is null
         group by c1.entity_id
         order by c1.created desc";
-        return $this->db()->select($sql, $data);
+        return db::exec($sql, $data);
     }
 
-    public function addPublication($sheetEntityId, $content, $notOwner) {
-        try {
-            db::get()->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            db::get()->beginTransaction();
-
+    public function addPublication($sheetEntityId, $content, $notOwner, $session) {
+        $result = null;
+        db::executeWithinTransaction(function() use($sheetEntityId, $content, $notOwner, &$result, $session){
             $sql = 'insert into entities (`parent_id`) value (?)';
-            $this->db()->exec($sql, [$sheetEntityId]);
-            $publicationId = db::get()->lastInsertId();
-            $created = $this->addEntityToEntitiesSheet($publicationId, 1);
+            db::exec($sql, [$sheetEntityId]);
+            $created = self::addEntityToEntitiesSheet($publicationId = db::getInsertedId(), 1);
             $result = ['pId' => $publicationId, 'created' => date('d F Y h:i', strtotime($created))];
             $sql = 'insert into publications (`entity_sheet_id`, `content`) value (?, ?)';
-            $this->db()->exec($sql, [$publicationId, $content]);
-
+            db::exec($sql, [$publicationId, $content]);
             if ($notOwner) {
                 $sql = 'insert into not_owners_created_entities (`entity_user_id`, `entity_id`) value (?, ?)';
-                $this->db()->exec($sql, [$notOwner, $publicationId], true);
-                $result['suggestedBy'] = $this->model('session')->get('userInitials');
+                db::exec($sql, [$notOwner, $publicationId], true);
+                $result['suggestedBy'] = $session->get('userInitials');
             }
-        } catch (Exception $ex) {
-            db::get()->rollBack();
-            return false;
-        }
-        db::get()->commit();
+        });
         return $result;
     }
 
-    private function addEntityToEntitiesSheet($entityId, $typeEntityId) {
+    private static function addEntityToEntitiesSheet($entityId, $typeEntityId) {
         $sql = 'insert into entities_sheet (`entity_id`, `type_entity_id`, `created`) value (?, ?, ?)';
-        if (!((bool)$this->db()->exec($sql, [$entityId, $typeEntityId, $created = date('Y-m-d h:i:s')]))) {
-            return false;
-        }
+        db::exec($sql, [$entityId, $typeEntityId, $created = date('Y-m-d h:i:s')]);
         return $created;
     }
 
@@ -181,11 +172,16 @@ class SheetModel extends modelManager
             is_admin,
           (exists(select * from groups_users gu where gu.entity_user_id = :u_id and gu.entity_group_id = :g_id))
             is_user';
-        return $this->db()->selectOne($sql, [':u_id' => $userEntityId, ':g_id' => $groupEntityId]);
+        return db::exec($sql, [':u_id' => $userEntityId, ':g_id' => $groupEntityId]);
     }
 
-    public function checkExistingSheetEntity($searchCriteria, $findBy = 0) {
-        $sql = 'select pge.entity_id, pge.uid, pge.info, pge.e_type from packed_general_entities pge where pge.'.(!$findBy?'uid':'entity_id').' = ? limit 1';
-        return $this->db()->selectOne($sql, [$searchCriteria]);
+    public function checkExistingSheetEntity($searchCriteria, $findBy = 0, $entity = null) {
+        $sql = 'select pge.entity_id, pge.uid, pge.info, pge.e_type from packed_general_entities pge where pge.'.(!$findBy?'uid':'entity_id').' = ?';
+        $args = [$searchCriteria];
+        if ($entity) {
+            array_push($args, $entity);
+            $sql .= ' and pge.e_type = ?';
+        }
+        return db::exec($sql.' limit 1', $args);
     }
 }

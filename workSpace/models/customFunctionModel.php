@@ -26,7 +26,7 @@ class CustomFunctionModel extends modelManager
     }
 
     public function checkExistingEmail($email) {
-        return (bool)$this->db()->selectOne('select id from users where email = :email limit 1', [':email' => $email]);
+        return db::exec('select id from users where email = :email limit 1', [':email' => $email]);
     }
 
     public function getMultiplePasswordEncode($password, $salt) {
@@ -51,5 +51,10 @@ class CustomFunctionModel extends modelManager
 
     public function getServerVariable($key) {
         return isset($_SERVER[$key]) ? $_SERVER[$key] : null;
+    }
+
+    public function checkMultidimensionalArray($array) {
+        $keys = array_keys($array);
+        return ctype_digit((string)reset($keys));
     }
 }
