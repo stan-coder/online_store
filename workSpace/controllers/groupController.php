@@ -22,7 +22,7 @@ class groupController extends controllerManager
      */
     public function sheet() {
         $shCnt = $this->getController('sheet');
-        $entity = $shCnt->start('group');
+        if (empty($entity = $shCnt->start('group'))) return;
         if (is_numeric($gi = $entity['entity_id']) && is_numeric($ui = $this->session()->get('userEntityId'))) {
             $permission = $this->model('sheet')->checkPermissionForGroup($ui, $gi);
             if (strpos(implode('', array_values($permission)), '1') !== false) set('addRecord', true);

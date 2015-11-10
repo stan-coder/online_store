@@ -52,4 +52,9 @@ class CustomFunctionModel extends modelManager
     public function getServerVariable($key) {
         return isset($_SERVER[$key]) ? $_SERVER[$key] : null;
     }
+
+    public function checkMultidimensionalArray($array) {
+        $keys = array_keys($array);
+        return ctype_digit((string)reset($keys));
+    }
 }

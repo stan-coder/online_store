@@ -5,7 +5,7 @@
         <li role="presentation" id="users"><a>Groups</a></li>
     </ul>
     <div id="surface">
-        <?php if (!empty(controllerManager::$variables['addRecord'])) : ?>
+        <?php if (isset(controllerManager::$variables['addRecord'])) : ?>
         <p id="addRecord"><a>Add new record</a></p>
         <div id="addNEntWrapper" style="display: none">
             <div class="addNewEntity">
