@@ -43,7 +43,7 @@ class SheetModel extends modelManager
             inner join owners_reposts owr5 on esh0.entity_id = owr5.entity_repost_id and entity_owner_id = :u_id) e6 on t1.e_id = e6.parent_id
         where t2.entity_id is null
         order by t1.created, t1.e_id desc limit 10";
-        return $this->replaceKeys($this->db()->select($sql, [':e_id' => $entityId, ':u_id' => $userEntityId]), 'entity_id');
+        return $this->replaceKeys(db::exec($sql, [':e_id' => $entityId, ':u_id' => $userEntityId]), 'entity_id');
     }
 
     public function getEntitiesListByType($typeId, $listId, $qu) {
@@ -58,7 +58,7 @@ class SheetModel extends modelManager
             left join not_owners_created_entities nown on p.entity_sheet_id = nown.entity_id
             left join users u on nown.entity_user_id = u.entity_id
             where entity_sheet_id in ({$qu})";
-        $res = $this->replaceKeys($this->db()->select($sql[(count(func_get_args())===3?1:0)], $listId), 'entity_sheet_id');
+        $res = db::exec($sql[(count(func_get_args())===3?1:0)], $listId);
         if (count($res)===1) {
             $key = current(array_keys($res));
             $res[$key] = array_filter($res[$key]);
@@ -104,7 +104,7 @@ class SheetModel extends modelManager
           left join entities_sheet esh1 on e4.parent_id = esh1.entity_id
         where r1.entity_sheet_id in ({$qu})
         order by r1.created desc";
-        return $this->db()->select($sql, $listId);
+        return db::exec($sql, $listId);
     }
 
     public function getEntitiesByIndex($index) {
@@ -138,7 +138,7 @@ class SheetModel extends modelManager
         where e1.parent_id in ({$placeholdersId}) and ign.entity_id is null
         group by c1.entity_id
         order by c1.created desc";
-        return $this->db()->select($sql, $data);
+        return db::exec($sql, $data);
     }
 
     public function addPublication($sheetEntityId, $content, $notOwner) {
@@ -186,6 +186,6 @@ class SheetModel extends modelManager
 
     public function checkExistingSheetEntity($searchCriteria, $findBy = 0) {
         $sql = 'select pge.entity_id, pge.uid, pge.info, pge.e_type from packed_general_entities pge where pge.'.(!$findBy?'uid':'entity_id').' = ? limit 1';
-        return $this->db()->selectOne($sql, [$searchCriteria]);
+        return db::exec($sql, $searchCriteria);
     }
 }

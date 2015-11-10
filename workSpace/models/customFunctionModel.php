@@ -26,7 +26,7 @@ class CustomFunctionModel extends modelManager
     }
 
     public function checkExistingEmail($email) {
-        return (bool)$this->db()->selectOne('select id from users where email = :email limit 1', [':email' => $email]);
+        return db::exec('select id from users where email = :email limit 1', [':email' => $email]);
     }
 
     public function getMultiplePasswordEncode($password, $salt) {

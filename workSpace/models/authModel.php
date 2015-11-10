@@ -2,24 +2,9 @@
 
 class AuthModel extends modelManager
 {
-    public function authorization($userId, $userEntityId, $userInitials, $email, $expire) {
-
+    public function authorization($userId, $expire, $hash) {
         $sql = "call insert_session_and_if_exists_remove_obsolete(?, ?, ?);";
-        $sesName = $this->model('session')->getName();
-        $hash = hash('sha512', $userId . $email . $sesName . session_id() . $_SERVER['HTTP_USER_AGENT'] . $this->model('customFunction')->getIp() . Config::$secretKey . $this->model('customFunction')->getRandomString() . microtime());
-
-        $isInserted = $this->db()->exec($sql, [
-            $userId,
-            $hash,
-            $expire
-        ], true);
-        if ($isInserted) {
-            $this->model('session')->set('userId', $userId);
-            $this->model('session')->set('userEntityId', $userEntityId);
-            $this->model('session')->set('userSessionHash', $hash);
-            $this->model('session')->set('userInitials', $userInitials);
-        }
-        return $isInserted;
+        return db::exec($sql, [$userId, $hash, $expire]);
     }
 
     public function hasSessionUserData($userId, $hash) {
@@ -33,7 +18,7 @@ class AuthModel extends modelManager
     public function checkCredential() {
         if (!$this->hasSessionUserData($ui = $this->model('session')->get('userId'), $h = $this->model('session')->get('userSessionHash'))) return 0;
         $sql = 'select UNIX_TIMESTAMP(expire) as expire from users_sessions where `user_id` = ? and `hash` = ?';
-        if (empty($data = $this->db()->selectOne($sql, [$ui, $h])) || !isset($data['expire'])) return 0;
+        if (empty($data = db::exec($sql, [$ui, $h])) || !isset($data['expire'])) return 0;
         if (($exp = (int)$data['expire']) !== 0 && $exp < time()) {
             $this->signOut($ui, $h);
         }
@@ -42,7 +27,7 @@ class AuthModel extends modelManager
 
     public function signOut($userId, $hash) {
         $sql = 'delete from `users_sessions` where `user_id` = ? and `hash` = ? limit 1';
-        $this->db()->exec($sql, [$userId, $hash]);
+        db::exec($sql, [$userId, $hash]);
 
         $this->model('session')->remove('userId');
         $this->model('session')->remove('userSessionHash');

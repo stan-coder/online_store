@@ -45,20 +45,15 @@ class UserController extends controllerManager
                 $salt = hash('sha512', $this->model('customFunction')->getRandomString());
                 $preparedPassword = $this->model('customFunction')->getMultiplePasswordEncode($psw[0], $salt).$psw[1];
                 $confirmCode = hash('sha512', $this->model('customFunction')->getRandomString());
-                $isCreated = $this->model('user')->createNewUser([
+                $this->model('user')->createNewUser([
                     $this->post('email'),
                     $preparedPassword,
                     $salt,
                     $confirmCode,
                 ]);
-                if (!$isCreated) {
-                    $this->setView('failRegistration');
-                    return;
-                } else {
-                    $this->model('customFunction')->sendConfirmationLink($this->post('email'), $confirmCode);
-                    $this->session()->set('registerComplete', true);
-                    $this->redirect('/sign_in');
-                }
+                $this->model('customFunction')->sendConfirmationLink($this->post('email'), $confirmCode);
+                $this->session()->set('registerComplete', true);
+                $this->redirect('/sign_in');
             }
         }
         set('typedEmail', $this->model('customFunction')->getTypedField('email'));
@@ -86,7 +81,23 @@ class UserController extends controllerManager
                     return 0;
                 }],
                 ['There is a unknown reason that do not allow you sign in. Try later, please.', function($t) use($init){
-                    if (!$t->model('auth')->authorization($init['id'], $init['entity_id'], $init['initials'], $t->post('email'), (int)$t->post('rememberMe'))) return 1;
+                    $hash = hash('sha512',
+                        $init['id'] .
+                        $t->post('email') .
+                        $this->model('session')->getName() .
+                        session_id() .
+                        $_SERVER['HTTP_USER_AGENT'] .
+                        $this->model('customFunction')->getIp() .
+                        Config::$secretKey .
+                        $this->model('customFunction')->getRandomString() .
+                        microtime());
+
+                    if (!$t->model('auth')->authorization($init['id'], (int)$t->post('rememberMe'), $hash)) return 1;
+
+                    $t->session()->set('userId', $init['id']);
+                    $t->session()->set('userEntityId', $init['entity_id']);
+                    $t->session()->set('userSessionHash', $hash);
+                    $t->session()->set('userInitials', $init['initials']);
                     $this->redirect('/');
                 }]
             ];
